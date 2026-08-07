@@ -67,7 +67,7 @@ informative:
 Brokered OAuth redirect authorization requests involve intermediary authorization servers or brokers between a downstream client and the upstream authorization server that obtains user consent and issues tokens.
 Such deployments have security risks because the upstream authorization server sees only the immediate OAuth client and is unaware of the downstream client or intermediary brokers obtaining its response.
 
-This document defines an informative OAuth 2.0 profile for carrying a verifiable, signed authorization request delegation chain as a RAR `authorization_details` object {{RFC9396}}. Each node in the chain is a JSON object signed by the attesting authorization server or broker, attesting its validated client, hash-linked to the previous node, allowing the upstream authorization server to validate the exact delegation path before issuing tokens.
+This document defines an informative OAuth 2.0 profile for carrying a verifiable, signed authorization request delegation chain as a RAR `authorization_details` object {{RFC9396}}. Each node in the chain is a JSON object signed by the attesting authorization server or broker using detached JWS {{RFC7515}}, attesting its validated client, hash-linked to the previous node, allowing the upstream authorization server to validate the exact delegation path before issuing tokens.
 
 This document does not define new OAuth endpoints, grant types, error codes, token formats, token response parameters, or token request parameters.
 
@@ -106,7 +106,7 @@ This document defines a RECOMMENDED `authorization_details` type for representin
 * Where the node appears in the chain, and
 * A cryptographic proof over the node.
 
-Each node is signed by the attesting entity and hash-linked to the previous node. The result is a JSON-structured, schema-validatable, tamper-resistant, verifiable signed delegation chain for use during redirect authorization request processing.
+Each node is signed by the attesting entity using detached JWS and hash-linked to the previous node. The result is a JSON-structured, schema-validatable, tamper-resistant, verifiable signed delegation chain for use during redirect authorization request processing.
 
 This profile is intentionally narrow. It does not define a new grant type, token format, endpoint, token response parameter, or error code. It defines only a proposed RAR {{RFC9396}} `authorization_details` type and processing rules for redirect authorization requests.
 
@@ -329,9 +329,7 @@ An authorization request MAY include an authorization detail object of this type
       "client_id": "broker-b-client",
       "resource": ["https://api-domain-1.example.com"],
       "proof": {
-        "alg": "ES256",
-        "kid": "broker-c-key-1",
-        "sig": "base64url-signature"
+        "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImJyb2tlci1jLWtleS0xIn0..base64url-signature"
       }
     }
   ]
@@ -392,25 +390,40 @@ The `client_name` value is display-only and MUST NOT be used as a security ident
 
 # Proof Object
 
-The `proof` object contains signature metadata and the signature value.
+The `proof` object contains a detached JWS compact serialization.
 
 | Member | Required | Description |
 |---|---:|---|
-| `alg` | Yes | Signature algorithm identifier. |
-| `kid` | Yes | Key identifier. |
-| `sig` | Yes | Base64url-encoded signature value. |
+| `jws` | Yes | Detached JWS compact serialization over the delegation node payload. |
 
 Example:
 
 ~~~ json
 {
-  "alg": "ES256",
-  "kid": "broker-c-key-1",
-  "sig": "MEUCIQD..."
+  "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImJyb2tlci1jLWtleS0xIn0..MEUCIQD..."
 }
 ~~~
 
-The key used to verify `proof.sig` is resolved from the attester identified by `iss`.
+The `proof.jws` value is a JWS Compact Serialization {{RFC7515}} with a detached payload. The payload segment is empty, resulting in the following form:
+
+~~~ text
+BASE64URL(UTF8(JWS Protected Header)) || "." || "" || "." || BASE64URL(JWS Signature)
+~~~
+
+The JWS Protected Header MUST contain an `alg` value and a `kid` value.
+
+For example, the protected header could be:
+
+~~~ json
+{
+  "alg": "ES256",
+  "kid": "broker-c-key-1"
+}
+~~~
+
+The detached JWS payload is the deterministic serialization of the delegation node excluding the `proof` member.
+
+The key used to verify `proof.jws` is resolved from the attester identified by `iss`.
 
 A verifier obtains the attester's verification key by resolving:
 
@@ -459,15 +472,15 @@ The upstream authorization server can then validate prior nodes to discover the 
 
 # Signature Input {#signature-input}
 
-The wire format of a delegation node is JSON. The node is not a JWT and is not processed as a JWT.
+The wire format of a delegation node is JSON. The node is not a JWT and MUST NOT be processed as a JWT claims set.
 
-However, because JSON object member order is not significant {{RFC8259}}, this profile requires deterministic signature input.
+Each node is signed using JSON Web Signature (JWS) {{RFC7515}} with a detached payload. The detached payload is the deterministic serialization of the delegation node excluding the `proof` member. The resulting compact detached JWS is carried in the node's `proof.jws` member.
 
-A compliant implementation MUST construct the signature input using the deterministic serialization defined in this section.
+The use of JWS provides standard JOSE header handling, including `alg` and `kid`, while preserving a JSON wire format that can be validated using typed schemas before cryptographic verification.
 
-## Delegation Chain Signing Input Version 1
+## Delegation Chain Signing Payload Version 1
 
-The signature input is a UTF-8 string formed by joining name-value lines with line feed `\n`.
+The detached JWS payload is a UTF-8 string formed by joining name-value lines with line feed `\n`.
 
 The first line is:
 
@@ -489,11 +502,9 @@ client_ns
 client_id
 client_name
 resource
-proof.alg
-proof.kid
 ~~~
 
-The `proof.sig` member is excluded.
+The `proof` member is excluded.
 
 Array values are serialized as comma-separated JSON string values in array order.
 
@@ -510,13 +521,19 @@ role=broker
 client_ns=as
 client_id=broker-b-client
 resource=https://api-domain-1.example.com
-proof.alg=ES256
-proof.kid=broker-c-key-1
 ~~~
 
-The signature is computed over the UTF-8 bytes of this string using the algorithm identified by `proof.alg`.
+This UTF-8 string is used as the detached JWS payload.
 
-Future specifications MAY define alternative signing-input schemes. Such specifications MUST identify the scheme unambiguously.
+The compact detached JWS is produced according to {{RFC7515}} by signing the payload with the algorithm identified by the JWS Protected Header `alg` value. The JWS Protected Header MUST contain `alg` and `kid`.
+
+The compact detached JWS serialization stored in `proof.jws` MUST contain an empty payload segment:
+
+~~~ text
+protected-header || "." || "" || "." || signature
+~~~
+
+Future specifications MAY define alternative signing-payload schemes. Such specifications MUST identify the scheme unambiguously.
 
 # Hash Chain
 
@@ -525,8 +542,9 @@ Each delegation node is hash-linked to the previous signed node.
 For node `i`, define:
 
 ~~~ text
-signature_input_i = deterministic signature input for node i
-event_hash_i = BASE64URL(SHA-256(signature_input_i || "." || proof.sig_i))
+signing_payload_i = deterministic detached JWS payload for node i
+detached_jws_i = proof.jws value for node i
+event_hash_i = BASE64URL(SHA-256(UTF8(signing_payload_i) || "." || ASCII(detached_jws_i)))
 ~~~
 
 The following rules apply:
@@ -537,13 +555,14 @@ chain[i].p_hash = event_hash(chain[i - 1]) for i > 0
 chain[i].n = chain[i - 1].n + 1
 ~~~
 
-This construction protects against:
+This construction binds both the delegation node payload and the JWS protected header and signature. It protects against:
 
 * reordering nodes,
 * inserting nodes,
 * deleting nodes,
-* modifying a prior node, and
-* replacing a prior signed node with a different signed node.
+* modifying a prior node,
+* replacing a prior signed node with a different signed node, and
+* substituting a different JWS protected header or signature for a prior node.
 
 # Creating or Adding to a Delegation Chain
 
@@ -662,19 +681,28 @@ Additional claims MAY be added as parties see fit, subject to local policy or fu
 
 ## Step 8 - Sign the Node
 
-The attester constructs the signature input as described in {{signature-input}}.
+The attester constructs the detached JWS payload as described in {{signature-input}}.
 
-The attester signs the signature input using the private key corresponding to the public key published in its `jwks_uri`.
+The attester creates a JWS Protected Header containing at least:
 
-The attester places the signature and signing metadata in `proof`:
+~~~ json
+{
+  "alg": "ES256",
+  "kid": "attester-key-1"
+}
+~~~
+
+The attester signs the detached JWS payload using the private key corresponding to the public key published in its `jwks_uri`.
+
+The attester places the compact detached JWS in `proof.jws`:
 
 ~~~ json
 "proof": {
-  "alg": "ES256",
-  "kid": "attester-key-1",
-  "sig": "base64url-signature"
+  "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImF0dGVzdGVyLWtleS0xIn0..base64url-signature"
 }
 ~~~
+
+The JWS payload segment MUST be empty in the compact serialization, because the payload is detached and represented by the delegation node JSON object itself.
 
 ## Step 9 - Forward the Chain
 
@@ -705,9 +733,7 @@ op
 role
 client_ns
 client_id
-proof.alg
-proof.kid
-proof.sig
+proof.jws
 ~~~
 
 A receiver MAY reject nodes containing unsupported values or unsupported extension members.
@@ -755,6 +781,8 @@ For every node after the first, the authorization server verifies:
 chain[i].p_hash == event_hash(chain[i - 1])
 ~~~
 
+where `event_hash` is computed over the previous node's deterministic detached JWS payload and its `proof.jws` value.
+
 If any hash comparison fails, the authorization server MUST reject the chain.
 
 ## Step 6 - Signature Validation
@@ -762,11 +790,17 @@ If any hash comparison fails, the authorization server MUST reject the chain.
 For each node, the authorization server:
 
 1. Reads `iss`.
-2. Resolves the issuer metadata.
-3. Obtains the issuer's `jwks_uri`.
-4. Fetches the issuer's JWK Set.
-5. Selects a key using `proof.kid`.
-6. Verifies `proof.sig` over the node's signature input.
+2. Reads `proof.jws`.
+3. Parses `proof.jws` as a compact detached JWS.
+4. Verifies that the compact JWS contains an empty payload segment.
+5. Decodes the JWS Protected Header.
+6. Verifies that the JWS Protected Header contains `alg` and `kid`.
+7. Resolves the issuer metadata for `iss`.
+8. Obtains the issuer's `jwks_uri`.
+9. Fetches the issuer's JWK Set.
+10. Selects a key using the JWS Protected Header `kid`.
+11. Constructs the deterministic detached JWS payload for the node by serializing the node excluding the `proof` member.
+12. Verifies the detached JWS signature over that payload according to {{RFC7515}}.
 
 If a signature cannot be verified, the authorization server MUST reject the chain.
 
@@ -891,7 +925,7 @@ Where token size or privacy considerations apply, an authorization server SHOULD
 
 ## Tampering
 
-The hash chain and per-node signatures are intended to detect node modification, insertion, deletion, and reordering.
+The hash chain and per-node detached JWS signatures are intended to detect node modification, insertion, deletion, reordering, and signature substitution.
 
 A receiver MUST reject a chain if any hash-link or signature check fails.
 
@@ -977,9 +1011,7 @@ The `aud` value always identifies the next authorization server or broker-AS. Th
       "client_name": "Client 123",
       "resource": ["https://api-domain-1.example.com"],
       "proof": {
-        "alg": "ES256",
-        "kid": "broker-a-key-1",
-        "sig": "sig0"
+        "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImJyb2tlci1hLWtleS0xIn0..sig0"
       }
     },
     {
@@ -994,9 +1026,7 @@ The `aud` value always identifies the next authorization server or broker-AS. Th
       "client_name": "Broker A",
       "resource": ["https://api-domain-1.example.com"],
       "proof": {
-        "alg": "ES256",
-        "kid": "broker-b-key-1",
-        "sig": "sig1"
+        "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImJyb2tlci1iLWtleS0xIn0..sig1"
       }
     },
     {
@@ -1011,9 +1041,7 @@ The `aud` value always identifies the next authorization server or broker-AS. Th
       "client_name": "Broker B",
       "resource": ["https://api-domain-1.example.com"],
       "proof": {
-        "alg": "ES256",
-        "kid": "broker-c-key-1",
-        "sig": "sig2"
+        "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImJyb2tlci1jLWtleS0xIn0..sig2"
       }
     }
   ]
@@ -1105,9 +1133,7 @@ The `aud` value always identifies the next authorization server or broker-AS. Th
       "client_id": "https://client-123.example.com/oauth-client-metadata.json",
       "resource": ["https://api-domain-1.example.com"],
       "proof": {
-        "alg": "ES256",
-        "kid": "broker-a-key-1",
-        "sig": "sig0"
+        "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImJyb2tlci1hLWtleS0xIn0..sig0"
       }
     },
     {
@@ -1121,9 +1147,7 @@ The `aud` value always identifies the next authorization server or broker-AS. Th
       "client_id": "https://broker-a.example.com/client",
       "resource": ["https://api-domain-1.example.com"],
       "proof": {
-        "alg": "ES256",
-        "kid": "broker-b-key-1",
-        "sig": "sig1"
+        "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImJyb2tlci1iLWtleS0xIn0..sig1"
       }
     },
     {
@@ -1137,9 +1161,7 @@ The `aud` value always identifies the next authorization server or broker-AS. Th
       "client_id": "https://broker-b.example.com/client",
       "resource": ["https://api-domain-1.example.com"],
       "proof": {
-        "alg": "ES256",
-        "kid": "broker-c-key-1",
-        "sig": "sig2"
+        "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImJyb2tlci1jLWtleS0xIn0..sig2"
       }
     }
   ]
@@ -1191,7 +1213,7 @@ And the resource remains:
 ["https://api-domain-1.example.com"]
 ~~~
 
-# Example Signing Input
+# Example Signing Payload
 
 For this node:
 
@@ -1207,14 +1229,12 @@ For this node:
   "client_id": "broker-b-client",
   "resource": ["https://api-domain-1.example.com"],
   "proof": {
-    "alg": "ES256",
-    "kid": "broker-c-key-1",
-    "sig": "sig2"
+    "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImJyb2tlci1jLWtleS0xIn0..sig2"
   }
 }
 ~~~
 
-the signature input is:
+the detached JWS payload is:
 
 ~~~ text
 oauth-authorization-request-delegation-chain-v1
@@ -1227,11 +1247,18 @@ role=broker
 client_ns=as
 client_id=broker-b-client
 resource=https://api-domain-1.example.com
-proof.alg=ES256
-proof.kid=broker-c-key-1
 ~~~
 
-The `proof.sig` value is computed over the UTF-8 bytes of this input.
+The JWS Protected Header is:
+
+~~~ json
+{
+  "alg": "ES256",
+  "kid": "broker-c-key-1"
+}
+~~~
+
+The `proof.jws` value is the compact detached JWS over the UTF-8 bytes of the detached JWS payload.
 
 # Document History
 
@@ -1241,6 +1268,7 @@ The `proof.sig` value is computed over the UTF-8 bytes of this input.
 * Defined `oauth_delegation_chain` authorization details type.
 * Defined signed authorization request delegation nodes using `iss`, `aud`, `client_ns`, and `client_id`.
 * Defined `client_ns` values `as` and `cimd`.
+* Defined detached JWS proof processing using `proof.jws`.
 * Defined `p_hash` hash-chain processing.
 * Added processing rules for creating, extending, and validating delegation chains.
 * Added brokered OAuth examples with and without CIMD.
