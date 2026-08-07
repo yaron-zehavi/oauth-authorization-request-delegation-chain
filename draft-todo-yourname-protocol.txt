@@ -2,7 +2,7 @@
 
 
 
-WG Working Group                                              Y. N. Here
+Network Working Group                   yaron.zehavi@rbinternational.com
 Internet-Draft                                    Your Organization Here
 Intended status: Informational                             7 August 2026
 Expires: 8 February 2027
@@ -19,17 +19,15 @@ About This Document
 
    This note is to be removed before publishing as an RFC.
 
-   The latest revision of this draft can be found at
-   https://example.com/LATEST.  Status information for this document may
-   be found at https://datatracker.ietf.org/doc/draft-todo-yourname-
+   The latest revision of this draft can be found at https://yaron-
+   zehavi.github.io/oauth-authorization-request-delegation-chain/draft-
+   todo-yourname-protocol.html.  Status information for this document
+   may be found at https://datatracker.ietf.org/doc/draft-todo-yourname-
    protocol/.
 
-   Discussion of this document takes place on the WG Working Group
-   mailing list (mailto:WG@example.com), which is archived at
-   https://example.com/WG.
-
    Source for this draft and an issue tracker can be found at
-   https://github.com/USER/REPO.
+   https://github.com/yaron-zehavi/oauth-authorization-request-
+   delegation-chain.
 
 Status of This Memo
 
@@ -109,6 +107,6 @@ Acknowledgments
 
 Author's Address
 
-   Your Name Here
+   yaron.zehavi@rbinternational.com
    Your Organization Here
-   Email: your.email@example.com
+   Email: yaron.zehavi@rbinternational.com
