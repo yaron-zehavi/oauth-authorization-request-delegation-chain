@@ -64,11 +64,10 @@ informative:
 
 --- abstract
 
-OAuth 2.0 Rich Authorization Requests (RAR) {{RFC9396}} defines a mechanism for carrying structured authorization details in OAuth authorization requests.
+Brokered OAuth redirect authorization requests involve intermediary authorization servers or brokers between a downstream client and the upstream authorization server that obtains user consent and issues tokens.
+Such deployments have security risks because the upstream authorization server sees only the immediate OAuth client and is unaware of the downstream client or intermediary brokers obtaining its response.
 
-Brokered OAuth redirect authorization requests often involve one or more intermediary authorization servers or brokers between a downstream client and the upstream authorization server that obtains user consent and issues tokens. In such deployments, the upstream authorization server may only see the immediate OAuth client and may be unaware of the downstream client or intermediary brokers involved in the redirect authorization request.
-
-This document defines an informative OAuth 2.0 profile for carrying a verifiable, signed authorization request delegation chain as an RAR `authorization_details` object. Each node in the chain is a JSON object signed by the attesting authorization server or broker and hash-linked to the previous node, allowing the upstream authorization server to validate the exact delegation path before issuing tokens.
+This document defines an informative OAuth 2.0 profile for carrying a verifiable, signed authorization request delegation chain as a RAR `authorization_details` object {{RFC9396}}. Each node in the chain is a JSON object signed by the attesting authorization server or broker, attesting its validated client, hash-linked to the previous node, allowing the upstream authorization server to validate the exact delegation path before issuing tokens.
 
 This document does not define new OAuth endpoints, grant types, error codes, token formats, token response parameters, or token request parameters.
 
@@ -76,36 +75,36 @@ This document does not define new OAuth endpoints, grant types, error codes, tok
 
 # Introduction
 
-OAuth redirect authorization requests increasingly pass through brokers, gateways, and intermediary authorization servers before reaching the authorization server that obtains user consent and issues tokens.
+OAuth redirect authorization requests increasingly pass through intermediary authorization servers before reaching the authorization server that obtains user consent and issues tokens.
 
-In a brokered redirect authorization flow, a downstream client may initiate an authorization request through one or more brokers. Each broker may be both:
+In a brokered redirect authorization flow, a downstream client may initiate an authorization request through one or more brokers. Each broker is both:
 
-* an authorization server or policy decision point for its downstream party, and
-* an OAuth client of the next authorization server or broker in the path.
+* An authorization server or policy decision point for its downstream party, and
+* An OAuth client of the next authorization server or broker in the path.
 
 The upstream authorization server that ultimately processes the redirect authorization request may only have a direct relationship with the immediate broker. Without additional information, it may be unable to determine which downstream client initiated the request or which broker path carried the request.
 
-The OAuth Security Topics update describes a shared consent problem in brokered OAuth deployments: an upstream authorization server can grant consent to a broker without being able to distinguish which downstream client is actually using that brokered access. This can result in consent granted for one downstream client being reused by another downstream client through the same broker {{I-D.ietf-oauth-security-topics-update}}.
+The OAuth Security Topics update {{I-D.ietf-oauth-security-topics-update}} describes a shared consent problem in brokered OAuth deployments: an upstream authorization server can grant consent to a broker without being able to distinguish which downstream client is actually using that brokered access. This can result in consent granted for one downstream client being reused by another downstream client through the same broker.
 
-This document addresses that problem for redirect authorization request delegation. It defines an RAR {{RFC9396}} `authorization_details` object that carries a signed delegation chain in the authorization request. The chain allows each authorization server or broker in the redirect path to attest the client it directly recognizes and to preserve the prior delegation evidence.
+This document addresses that problem for redirect authorization request delegation. It defines a RAR {{RFC9396}} `authorization_details` object that carries a signed delegation chain in the authorization request. The chain allows each authorization server or broker in the redirect path to attest the client it directly recognizes and to preserve the prior delegation evidence.
 
 The resulting chain allows the upstream authorization server to make authorization, consent, and policy decisions based on:
 
-* the immediate broker client,
-* the downstream client that initiated the request,
-* the ordered broker path,
-* the authorization servers or brokers that attested each hop,
-* the protected resource requested, and
-* the integrity of the delegation chain.
+* The immediate broker client,
+* The downstream client that initiated the request,
+* The ordered broker path,
+* The authorization servers or brokers that attested each hop,
+* The protected resource requested, and
+* The integrity of the delegation chain.
 
-This document defines an `authorization_details` type for representing a verifiable signed delegation chain. Each chain node states:
+This document defines a RECOMMENDED `authorization_details` type for representing a verifiable signed delegation chain. Each chain node states:
 
-* who is attesting the node,
-* who the node is intended for,
-* which client is being attested for this hop,
-* which resource is involved,
-* where the node appears in the chain, and
-* a cryptographic proof over the node.
+* Who is attesting the node,
+* Who the node is intended for,
+* Which client is being attested for this hop,
+* Which resource is involved,
+* Where the node appears in the chain, and
+* A cryptographic proof over the node.
 
 Each node is signed by the attesting entity and hash-linked to the previous node. The result is a JSON-structured, schema-validatable, tamper-resistant, verifiable signed delegation chain for use during redirect authorization request processing.
 
@@ -132,7 +131,6 @@ This document addresses transaction-specific authorization request delegation pa
 * Which brokers carried the request?
 * Which entity attested each hop?
 * Was the authorization request delegation chain reordered, truncated, or modified?
-* Should consent or policy be bound to this exact path?
 
 Deployments MAY use OpenID Federation to establish trust in the entities that appear in a delegation chain. For example, `iss` values in this profile can correspond to federated entity identifiers, and federation metadata can be used to discover keys or validate metadata policy.
 
@@ -140,23 +138,9 @@ This document does not replace OpenID Federation. Instead, it can consume or com
 
 ## Relation to OAuth Client ID Metadata Document
 
-The OAuth Client ID Metadata Document draft defines a mechanism by which an OAuth client can use a URL as its `client_id`, where the URL references a client metadata document that can be fetched by an authorization server {{I-D.ietf-oauth-client-id-metadata-document}}.
+The OAuth Client ID Metadata Document draft (aka: CIMD) defines a mechanism by which an OAuth client can use a URL as its `client_id`, where the URL references a client metadata document that can be fetched by an authorization server {{I-D.ietf-oauth-client-id-metadata-document}}.
 
-This document is complementary to that mechanism.
-
-The OAuth Client ID Metadata Document draft addresses client metadata discovery. It can answer questions such as:
-
-* What metadata is associated with this `client_id`?
-* Which redirect URIs, names, keys, or other metadata are associated with the client?
-* Can an authorization server obtain client metadata without prior registration?
-
-This document addresses authorization request delegation path preservation. It can answer questions such as:
-
-* Which entity attested this client for this authorization request?
-* Which brokers carried the request?
-* Which upstream authorization server directly trusts which intermediary?
-* Was the authorization request delegation path modified, truncated, or reordered?
-* Should consent or policy be bound to this exact delegation path?
+This document is complementary to that mechanism and points to CIMD client_id's when such were used.
 
 A delegation node can use a CIMD-style `client_id` by setting `client_ns` to `cimd` and `client_id` to the metadata document URL. For example:
 
@@ -177,23 +161,23 @@ This document is related to the `act` claim because both mechanisms represent de
 
 The `act` claim is a token-time representation. It appears in issued tokens or token introspection responses and is consumed after token issuance, typically by resource servers or downstream authorization servers.
 
-This document defines an authorization-request-time representation. The delegation chain is carried in an RAR `authorization_details` object during the redirect authorization request, before the upstream authorization server has issued tokens.
+This document defines an authorization-request-time representation. The delegation chain is carried in a RAR `authorization_details` object during the redirect authorization request, before the upstream authorization server has issued tokens.
 
 The distinction is important for brokered redirect authorization flows. The upstream authorization server needs to know the downstream client and broker path before it can make a correct consent or authorization decision. A token claim such as `act` can describe delegation after issuance, but it does not by itself provide a redirect authorization request mechanism for presenting signed per-hop delegation evidence to the authorization endpoint before consent and token issuance.
 
 This profile also differs from nested `act` claims in that:
 
-* each delegation node is signed by the authorization server or broker that attests that hop,
-* each node is hash-linked to the previous node,
-* the chain is carried as JSON in RAR `authorization_details`,
-* the chain is intended for authorization endpoint processing, and
-* the upstream authorization server can bind consent to the terminal client and broker path before issuing tokens.
+* Each delegation node is signed by the authorization server or broker that attests that hop,
+* Each node is hash-linked to the previous node,
+* The chain is carried as JSON in RAR `authorization_details`,
+* The chain is intended for authorization endpoint processing, and
+* The upstream authorization server can bind consent to the terminal client and broker path before issuing tokens.
 
 An authorization server MAY translate a validated delegation chain into issued-token claims, including `act` claims, after authorization succeeds. Such token representation is outside the scope of this document.
 
 ## Relation to the OAuth Actor Profile for Delegation
 
-The OAuth Actor Profile for Delegation defines a common profile for representing delegated actor relationships using the `act` claim across JWT assertion grants, JWT access tokens, Transaction Tokens, and Token Exchange inputs. It also defines actor classification through `sub_profile` and discovery metadata for advertising support {{I-D.mcguinness-oauth-actor-profile}}.
+The OAuth Actor Profile for Delegation draft defines a common profile for representing delegated actor relationships using the `act` claim across JWT assertion grants, JWT access tokens, Transaction Tokens, and Token Exchange inputs. It also defines actor classification through `sub_profile` and discovery metadata for advertising support {{I-D.mcguinness-oauth-actor-profile}}.
 
 This document is complementary to the OAuth Actor Profile but has a different scope.
 
@@ -206,27 +190,12 @@ The OAuth Actor Profile addresses token and assertion interoperability. It helps
 
 This document addresses redirect authorization request delegation. It helps an upstream authorization server evaluate a brokered authorization request before token issuance by carrying a signed delegation chain in RAR `authorization_details`.
 
-The OAuth Actor Profile can answer questions such as:
-
-* Who is the actor represented in this token?
-* What type of entity is the actor?
-* How should actors be represented consistently across token families?
-* How do authorization servers and resource servers advertise actor-profile support?
-
-This document can answer different questions:
-
-* Which downstream client initiated this redirect authorization request?
-* Which brokers carried the request before it reached the upstream authorization server?
-* Which broker or authorization server attested each hop?
-* Was the redirect delegation path modified, truncated, inserted into, or reordered?
-* Should user consent be bound to this exact downstream client and broker path?
-
 The two mechanisms can be used together. An authorization server can validate an `oauth_delegation_chain` authorization detail during the redirect authorization request and, after successful authorization, issue a token using the `act` claim profile defined by the OAuth Actor Profile.
 
 In that combined model:
 
-* this document provides pre-token authorization request evidence, and
-* the OAuth Actor Profile provides post-authorization token representation.
+* This document provides pre-token authorization request evidence, and
+* The OAuth Actor Profile provides post-authorization token representation.
 
 ## Relation to OAuth Actor-Signed Hop Proofs
 
@@ -301,7 +270,7 @@ The protected resource remains constant across the chain:
 resource = https://api-domain-1.example.com
 ~~~
 
-The `aud` value identifies only the next authorization server or broker-AS. It does not identify the protected API.
+The `aud` value in the delegation chain identifies only the next authorization server.
 
 By validating the signed and hash-linked chain, the upstream authorization server can bind consent and policy to the full redirect delegation path rather than only to the immediate broker.
 
