@@ -7,7 +7,7 @@
 <title>OAuth Authorization Request Delegation Chain</title>
 <meta content="Yaron Zehavi" name="author">
 <meta content="
-       Brokered OAuth redirect authorization requests involve intermediary authorization servers or brokers between a downstream client and the upstream authorization server that obtains user consent and issues tokens.
+       Brokered OAuth redirect authorization requests involve intermediary authorization servers between a downstream client and the upstream authorization server that obtains user consent and issues tokens.
 Such deployments have security risks because the upstream authorization server sees only the immediate OAuth client and is unaware of the downstream client or intermediary brokers obtaining its response. 
        This document defines an informative OAuth 2.0 profile for carrying a verifiable, signed authorization request delegation chain as a RAR  authorization_details  object  . Each node in the chain is a JSON object signed by the attesting authorization server or broker using detached JWS  , attesting its validated client, hash-linked to the previous node, allowing the upstream authorization server to validate the exact delegation path before issuing tokens. 
        This document does not define new OAuth endpoints, grant types, error codes, token formats, token response parameters, or token request parameters. 
@@ -1084,7 +1084,7 @@ svg {
 <h1 id="title">OAuth Authorization Request Delegation Chain</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">Brokered OAuth redirect authorization requests involve intermediary authorization servers or brokers between a downstream client and the upstream authorization server that obtains user consent and issues tokens.
+<p id="section-abstract-1">Brokered OAuth redirect authorization requests involve intermediary authorization servers between a downstream client and the upstream authorization server that obtains user consent and issues tokens.
 Such deployments have security risks because the upstream authorization server sees only the immediate OAuth client and is unaware of the downstream client or intermediary brokers obtaining its response.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 <p id="section-abstract-2">This document defines an informative OAuth 2.0 profile for carrying a verifiable, signed authorization request delegation chain as a RAR <code>authorization_details</code> object <span>[<a href="#RFC9396" class="cite xref">RFC9396</a>]</span>. Each node in the chain is a JSON object signed by the attesting authorization server or broker using detached JWS <span>[<a href="#RFC7515" class="cite xref">RFC7515</a>]</span>, attesting its validated client, hash-linked to the previous node, allowing the upstream authorization server to validate the exact delegation path before issuing tokens.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
 <p id="section-abstract-3">This document does not define new OAuth endpoints, grant types, error codes, token formats, token response parameters, or token request parameters.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
@@ -1221,22 +1221,16 @@ Such deployments have security risks because the upstream authorization server s
                 <p id="section-toc.1-1.12.2.3.1"><a href="#section-12.3" class="auto internal xref">12.3</a>.  <a href="#name-step-3-determine-the-attest" class="internal xref">Step 3 - Determine the Attested Client</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.4">
-                <p id="section-toc.1-1.12.2.4.1"><a href="#section-12.4" class="auto internal xref">12.4</a>.  <a href="#name-step-4-set-the-operation" class="internal xref">Step 4 - Set the Operation</a></p>
+                <p id="section-toc.1-1.12.2.4.1"><a href="#section-12.4" class="auto internal xref">12.4</a>.  <a href="#name-step-4-set-the-position" class="internal xref">Step 4 - Set the Position</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.5">
-                <p id="section-toc.1-1.12.2.5.1"><a href="#section-12.5" class="auto internal xref">12.5</a>.  <a href="#name-step-5-set-the-role" class="internal xref">Step 5 - Set the Role</a></p>
+                <p id="section-toc.1-1.12.2.5.1"><a href="#section-12.5" class="auto internal xref">12.5</a>.  <a href="#name-step-5-add-optional-display" class="internal xref">Step 5 - Add Optional Display or Resource Information</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.6">
-                <p id="section-toc.1-1.12.2.6.1"><a href="#section-12.6" class="auto internal xref">12.6</a>.  <a href="#name-step-6-set-the-position" class="internal xref">Step 6 - Set the Position</a></p>
+                <p id="section-toc.1-1.12.2.6.1"><a href="#section-12.6" class="auto internal xref">12.6</a>.  <a href="#name-step-6-sign-the-node" class="internal xref">Step 6 - Sign the Node</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.7">
-                <p id="section-toc.1-1.12.2.7.1"><a href="#section-12.7" class="auto internal xref">12.7</a>.  <a href="#name-step-7-add-optional-display" class="internal xref">Step 7 - Add Optional Display or Resource Information</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.8">
-                <p id="section-toc.1-1.12.2.8.1"><a href="#section-12.8" class="auto internal xref">12.8</a>.  <a href="#name-step-8-sign-the-node" class="internal xref">Step 8 - Sign the Node</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.9">
-                <p id="section-toc.1-1.12.2.9.1"><a href="#section-12.9" class="auto internal xref">12.9</a>.  <a href="#name-step-9-forward-the-chain" class="internal xref">Step 9 - Forward the Chain</a></p>
+                <p id="section-toc.1-1.12.2.7.1"><a href="#section-12.7" class="auto internal xref">12.7</a>.  <a href="#name-step-7-forward-the-chain" class="internal xref">Step 7 - Forward the Chain</a></p>
 </li>
             </ul>
 </li>
@@ -1247,31 +1241,28 @@ Such deployments have security risks because the upstream authorization server s
                 <p id="section-toc.1-1.13.2.1.1"><a href="#section-13.1" class="auto internal xref">13.1</a>.  <a href="#name-step-1-schema-validation" class="internal xref">Step 1 - Schema Validation</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.2">
-                <p id="section-toc.1-1.13.2.2.1"><a href="#section-13.2" class="auto internal xref">13.2</a>.  <a href="#name-step-2-operation-validation" class="internal xref">Step 2 - Operation Validation</a></p>
+                <p id="section-toc.1-1.13.2.2.1"><a href="#section-13.2" class="auto internal xref">13.2</a>.  <a href="#name-step-2-client-namespace-val" class="internal xref">Step 2 - Client Namespace Validation</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.3">
-                <p id="section-toc.1-1.13.2.3.1"><a href="#section-13.3" class="auto internal xref">13.3</a>.  <a href="#name-step-3-client-namespace-val" class="internal xref">Step 3 - Client Namespace Validation</a></p>
+                <p id="section-toc.1-1.13.2.3.1"><a href="#section-13.3" class="auto internal xref">13.3</a>.  <a href="#name-step-3-ordering-validation" class="internal xref">Step 3 - Ordering Validation</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.4">
-                <p id="section-toc.1-1.13.2.4.1"><a href="#section-13.4" class="auto internal xref">13.4</a>.  <a href="#name-step-4-ordering-validation" class="internal xref">Step 4 - Ordering Validation</a></p>
+                <p id="section-toc.1-1.13.2.4.1"><a href="#section-13.4" class="auto internal xref">13.4</a>.  <a href="#name-step-4-hash-chain-validatio" class="internal xref">Step 4 - Hash-Chain Validation</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.5">
-                <p id="section-toc.1-1.13.2.5.1"><a href="#section-13.5" class="auto internal xref">13.5</a>.  <a href="#name-step-5-hash-chain-validatio" class="internal xref">Step 5 - Hash-Chain Validation</a></p>
+                <p id="section-toc.1-1.13.2.5.1"><a href="#section-13.5" class="auto internal xref">13.5</a>.  <a href="#name-step-5-signature-validation" class="internal xref">Step 5 - Signature Validation</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.6">
-                <p id="section-toc.1-1.13.2.6.1"><a href="#section-13.6" class="auto internal xref">13.6</a>.  <a href="#name-step-6-signature-validation" class="internal xref">Step 6 - Signature Validation</a></p>
+                <p id="section-toc.1-1.13.2.6.1"><a href="#section-13.6" class="auto internal xref">13.6</a>.  <a href="#name-step-6-audience-validation" class="internal xref">Step 6 - Audience Validation</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.7">
-                <p id="section-toc.1-1.13.2.7.1"><a href="#section-13.7" class="auto internal xref">13.7</a>.  <a href="#name-step-7-audience-validation" class="internal xref">Step 7 - Audience Validation</a></p>
+                <p id="section-toc.1-1.13.2.7.1"><a href="#section-13.7" class="auto internal xref">13.7</a>.  <a href="#name-step-7-resource-consistency" class="internal xref">Step 7 - Resource Consistency Validation</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.8">
-                <p id="section-toc.1-1.13.2.8.1"><a href="#section-13.8" class="auto internal xref">13.8</a>.  <a href="#name-step-8-resource-consistency" class="internal xref">Step 8 - Resource Consistency Validation</a></p>
+                <p id="section-toc.1-1.13.2.8.1"><a href="#section-13.8" class="auto internal xref">13.8</a>.  <a href="#name-step-8-relationship-validat" class="internal xref">Step 8 - Relationship Validation</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.9">
-                <p id="section-toc.1-1.13.2.9.1"><a href="#section-13.9" class="auto internal xref">13.9</a>.  <a href="#name-step-9-relationship-validat" class="internal xref">Step 9 - Relationship Validation</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.10">
-                <p id="section-toc.1-1.13.2.10.1"><a href="#section-13.10" class="auto internal xref">13.10</a>. <a href="#name-step-10-policy-validation" class="internal xref">Step 10 - Policy Validation</a></p>
+                <p id="section-toc.1-1.13.2.9.1"><a href="#section-13.9" class="auto internal xref">13.9</a>.  <a href="#name-step-9-policy-validation" class="internal xref">Step 9 - Policy Validation</a></p>
 </li>
             </ul>
 </li>
@@ -1365,62 +1356,54 @@ Such deployments have security risks because the upstream authorization server s
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
 <p id="section-1-1">OAuth redirect authorization requests increasingly pass through intermediary authorization servers before reaching the authorization server that obtains user consent and issues tokens.<a href="#section-1-1" class="pilcrow">¶</a></p>
-<p id="section-1-2">In a brokered redirect authorization flow, a downstream client may initiate an authorization request through one or more brokers. Each broker is both:<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-2">In a brokered redirect authorization flow, a downstream client may initiate an authorization request through one or more brokers. Each broker is both an authorization server for its downstream party, and an OAuth client of the next authorization server or broker in the path.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">The upstream authorization server that ultimately processes the redirect authorization request may only have a direct relationship with the immediate broker. Without additional information, it may be unable to determine which downstream client initiated the request or which broker path carried the request.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4">The OAuth Security Topics update <span>[<a href="#I-D.ietf-oauth-security-topics-update" class="cite xref">I-D.ietf-oauth-security-topics-update</a>]</span> describes a shared consent problem in brokered OAuth deployments: an upstream authorization server can grant consent to a broker without being able to distinguish which downstream client is actually using that brokered access. This can result in consent granted for one downstream client being reused by another downstream client through the same broker.<a href="#section-1-4" class="pilcrow">¶</a></p>
+<p id="section-1-5">This document addresses that problem for redirect authorization request delegation. It defines a RAR <span>[<a href="#RFC9396" class="cite xref">RFC9396</a>]</span> <code>authorization_details</code> object that carries a signed delegation chain in the authorization request. The chain allows each authorization server or broker in the redirect path to attest the client it directly recognizes and to preserve the prior delegation evidence.<a href="#section-1-5" class="pilcrow">¶</a></p>
+<p id="section-1-6">The resulting chain allows the upstream authorization server to make authorization, consent, and policy decisions based on:<a href="#section-1-6" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1-3.1">
-          <p id="section-1-3.1.1">An authorization server or policy decision point for its downstream party, and<a href="#section-1-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-1-7.1">
+          <p id="section-1-7.1.1">The immediate broker client,<a href="#section-1-7.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-1-3.2">
-          <p id="section-1-3.2.1">An OAuth client of the next authorization server or broker in the path.<a href="#section-1-3.2.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-1-7.2">
+          <p id="section-1-7.2.1">The downstream client that initiated the request,<a href="#section-1-7.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-1-7.3">
+          <p id="section-1-7.3.1">The ordered broker path,<a href="#section-1-7.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-1-7.4">
+          <p id="section-1-7.4.1">The authorization servers or brokers that attested each hop,<a href="#section-1-7.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-1-7.5">
+          <p id="section-1-7.5.1">The protected resource requested, and<a href="#section-1-7.5.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-1-7.6">
+          <p id="section-1-7.6.1">The integrity of the delegation chain.<a href="#section-1-7.6.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-1-4">The upstream authorization server that ultimately processes the redirect authorization request may only have a direct relationship with the immediate broker. Without additional information, it may be unable to determine which downstream client initiated the request or which broker path carried the request.<a href="#section-1-4" class="pilcrow">¶</a></p>
-<p id="section-1-5">The OAuth Security Topics update <span>[<a href="#I-D.ietf-oauth-security-topics-update" class="cite xref">I-D.ietf-oauth-security-topics-update</a>]</span> describes a shared consent problem in brokered OAuth deployments: an upstream authorization server can grant consent to a broker without being able to distinguish which downstream client is actually using that brokered access. This can result in consent granted for one downstream client being reused by another downstream client through the same broker.<a href="#section-1-5" class="pilcrow">¶</a></p>
-<p id="section-1-6">This document addresses that problem for redirect authorization request delegation. It defines a RAR <span>[<a href="#RFC9396" class="cite xref">RFC9396</a>]</span> <code>authorization_details</code> object that carries a signed delegation chain in the authorization request. The chain allows each authorization server or broker in the redirect path to attest the client it directly recognizes and to preserve the prior delegation evidence.<a href="#section-1-6" class="pilcrow">¶</a></p>
-<p id="section-1-7">The resulting chain allows the upstream authorization server to make authorization, consent, and policy decisions based on:<a href="#section-1-7" class="pilcrow">¶</a></p>
+<p id="section-1-8">This document defines a <span class="bcp14">RECOMMENDED</span> <code>authorization_details</code> type for representing a verifiable signed delegation chain. Each chain node states:<a href="#section-1-8" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1-8.1">
-          <p id="section-1-8.1.1">The immediate broker client,<a href="#section-1-8.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-1-9.1">
+          <p id="section-1-9.1.1">Who is attesting the node,<a href="#section-1-9.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-1-8.2">
-          <p id="section-1-8.2.1">The downstream client that initiated the request,<a href="#section-1-8.2.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-1-9.2">
+          <p id="section-1-9.2.1">Who the node is intended for,<a href="#section-1-9.2.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-1-8.3">
-          <p id="section-1-8.3.1">The ordered broker path,<a href="#section-1-8.3.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-1-9.3">
+          <p id="section-1-9.3.1">Which client is being attested for this hop,<a href="#section-1-9.3.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-1-8.4">
-          <p id="section-1-8.4.1">The authorization servers or brokers that attested each hop,<a href="#section-1-8.4.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-1-9.4">
+          <p id="section-1-9.4.1">Which resource is involved,<a href="#section-1-9.4.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-1-8.5">
-          <p id="section-1-8.5.1">The protected resource requested, and<a href="#section-1-8.5.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-1-9.5">
+          <p id="section-1-9.5.1">Where the node appears in the chain, and<a href="#section-1-9.5.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-1-8.6">
-          <p id="section-1-8.6.1">The integrity of the delegation chain.<a href="#section-1-8.6.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-1-9.6">
+          <p id="section-1-9.6.1">A cryptographic proof over the node.<a href="#section-1-9.6.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-1-9">This document defines a <span class="bcp14">RECOMMENDED</span> <code>authorization_details</code> type for representing a verifiable signed delegation chain. Each chain node states:<a href="#section-1-9" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-1-10.1">
-          <p id="section-1-10.1.1">Who is attesting the node,<a href="#section-1-10.1.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-1-10.2">
-          <p id="section-1-10.2.1">Who the node is intended for,<a href="#section-1-10.2.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-1-10.3">
-          <p id="section-1-10.3.1">Which client is being attested for this hop,<a href="#section-1-10.3.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-1-10.4">
-          <p id="section-1-10.4.1">Which resource is involved,<a href="#section-1-10.4.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-1-10.5">
-          <p id="section-1-10.5.1">Where the node appears in the chain, and<a href="#section-1-10.5.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-1-10.6">
-          <p id="section-1-10.6.1">A cryptographic proof over the node.<a href="#section-1-10.6.1" class="pilcrow">¶</a></p>
-</li>
-      </ul>
-<p id="section-1-11">Each node is signed by the attesting entity using detached JWS and hash-linked to the previous node. The result is a JSON-structured, schema-validatable, tamper-resistant, verifiable signed delegation chain for use during redirect authorization request processing.<a href="#section-1-11" class="pilcrow">¶</a></p>
-<p id="section-1-12">This profile is intentionally narrow. It does not define a new grant type, token format, endpoint, token response parameter, or error code. It defines only a proposed RAR <span>[<a href="#RFC9396" class="cite xref">RFC9396</a>]</span> <code>authorization_details</code> type and processing rules for redirect authorization requests.<a href="#section-1-12" class="pilcrow">¶</a></p>
+<p id="section-1-10">Each node is signed by the attesting entity using detached JWS and hash-linked to the previous node. The result is a JSON-structured, schema-validatable, tamper-resistant, verifiable signed delegation chain for use during redirect authorization request processing.<a href="#section-1-10" class="pilcrow">¶</a></p>
+<p id="section-1-11">This profile is intentionally narrow. It does not define a new grant type, token format, endpoint, token response parameter, or error code. It defines only a proposed RAR <span>[<a href="#RFC9396" class="cite xref">RFC9396</a>]</span> <code>authorization_details</code> type and processing rules for redirect authorization requests.<a href="#section-1-11" class="pilcrow">¶</a></p>
 <div id="relation-to-openid-federation">
 <section id="section-1.1">
         <h3 id="name-relation-to-openid-federati">
@@ -1536,7 +1519,7 @@ Such deployments have security risks because the upstream authorization server s
 </li>
         </ul>
 <p id="section-1.4-5">This document addresses redirect authorization request delegation. It helps an upstream authorization server evaluate a brokered authorization request before token issuance by carrying a signed delegation chain in RAR <code>authorization_details</code>.<a href="#section-1.4-5" class="pilcrow">¶</a></p>
-<p id="section-1.4-6">The two mechanisms can be used together. An authorization server can validate an <code>oauth_delegation_chain</code> authorization detail during the redirect authorization request and, after successful authorization, issue a token using the <code>act</code> claim profile defined by the OAuth Actor Profile.<a href="#section-1.4-6" class="pilcrow">¶</a></p>
+<p id="section-1.4-6">The two mechanisms can be used together. An authorization server can validate an <code>oauth_request_delegation_chain</code> authorization detail during the redirect authorization request and, after successful authorization, issue a token using the <code>act</code> claim profile defined by the OAuth Actor Profile.<a href="#section-1.4-6" class="pilcrow">¶</a></p>
 <p id="section-1.4-7">In that combined model:<a href="#section-1.4-7" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-1.4-8.1">
@@ -1560,7 +1543,7 @@ Such deployments have security risks because the upstream authorization server s
 <p id="section-1.5-5">A deployment could use both mechanisms:<a href="#section-1.5-5" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-1.5-6.1">
-            <p id="section-1.5-6.1.1"><code>oauth_delegation_chain</code> in the redirect authorization request to support upstream authorization server consent and policy decisions.<a href="#section-1.5-6.1.1" class="pilcrow">¶</a></p>
+            <p id="section-1.5-6.1.1"><code>oauth_request_delegation_chain</code> in the redirect authorization request to support upstream authorization server consent and policy decisions.<a href="#section-1.5-6.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-1.5-6.2">
             <p id="section-1.5-6.2.1"><code>act</code> and <code>actor_proofs</code> in issued tokens to support downstream resource server enforcement and audit.<a href="#section-1.5-6.2.1" class="pilcrow">¶</a></p>
@@ -1703,22 +1686,20 @@ resource = https://api-domain-1.example.com
 <p id="section-5-1">This profile defines the following proposed <code>authorization_details</code> type:<a href="#section-5-1" class="pilcrow">¶</a></p>
 <div class="lang-json sourcecode" id="section-5-2">
 <pre>
-"oauth_delegation_chain"
+"oauth_request_delegation_chain"
 </pre><a href="#section-5-2" class="pilcrow">¶</a>
 </div>
 <p id="section-5-3">An authorization request <span class="bcp14">MAY</span> include an authorization detail object of this type:<a href="#section-5-3" class="pilcrow">¶</a></p>
 <div class="lang-json sourcecode" id="section-5-4">
 <pre>
 {
-  "type": "oauth_delegation_chain",
+  "type": "oauth_request_delegation_chain",
   "chain": [
     {
       "iss": "https://broker-c.example.com",
       "aud": "https://as-domain-1.example.com",
       "n": 2,
       "p_hash": "base64url-sha256-of-previous-node",
-      "op": "attest_client",
-      "role": "broker",
       "client_ns": "as",
       "client_id": "broker-b-client",
       "resource": ["https://api-domain-1.example.com"],
@@ -1754,7 +1735,7 @@ resource = https://api-domain-1.example.com
               <code>type</code>
 </td>
             <td class="text-right" rowspan="1" colspan="1">Yes</td>
-            <td class="text-left" rowspan="1" colspan="1">Authorization details type. Value: <code>oauth_delegation_chain</code>.</td>
+            <td class="text-left" rowspan="1" colspan="1">Authorization details type. Value: <code>oauth_request_delegation_chain</code>.</td>
           </tr>
           <tr>
             <td class="text-left" rowspan="1" colspan="1">
@@ -1818,20 +1799,6 @@ resource = https://api-domain-1.example.com
 </td>
             <td class="text-right" rowspan="1" colspan="1">Yes</td>
             <td class="text-left" rowspan="1" colspan="1">Hash of the previous signed node. <code>null</code> for the first node.</td>
-          </tr>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">
-              <code>op</code>
-</td>
-            <td class="text-right" rowspan="1" colspan="1">Yes</td>
-            <td class="text-left" rowspan="1" colspan="1">Operation represented by the node. This profile defines <code>attest_client</code>.</td>
-          </tr>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">
-              <code>role</code>
-</td>
-            <td class="text-right" rowspan="1" colspan="1">Yes</td>
-            <td class="text-left" rowspan="1" colspan="1">Role of the attesting entity, such as <code>as</code> or <code>broker</code>.</td>
           </tr>
           <tr>
             <td class="text-left" rowspan="1" colspan="1">
@@ -1973,7 +1940,6 @@ client for this authorization request hop.
 {
   "iss": "https://broker-c.example.com",
   "aud": "https://as-domain-1.example.com",
-  "op": "attest_client",
   "client_ns": "as",
   "client_id": "broker-b-client"
 }
@@ -2017,8 +1983,6 @@ sub
 aud
 n
 p_hash
-op
-role
 client_ns
 client_id
 client_name
@@ -2035,8 +1999,6 @@ iss=https://broker-c.example.com
 aud=https://as-domain-1.example.com
 n=2
 p_hash=Vh6U...
-op=attest_client
-role=broker
 client_ns=as
 client_id=broker-b-client
 resource=https://api-domain-1.example.com
@@ -2179,99 +2141,65 @@ chain[i].n = chain[i - 1].n + 1
 <p id="section-12.3-10">The mechanism for resolving metadata from <code>client_ns</code> and <code>client_id</code> is determined by local policy, federation metadata, or client metadata mechanisms.<a href="#section-12.3-10" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="step-4-set-the-operation">
+<div id="step-4-set-the-position">
 <section id="section-12.4">
-        <h3 id="name-step-4-set-the-operation">
-<a href="#section-12.4" class="section-number selfRef">12.4. </a><a href="#name-step-4-set-the-operation" class="section-name selfRef">Step 4 - Set the Operation</a>
+        <h3 id="name-step-4-set-the-position">
+<a href="#section-12.4" class="section-number selfRef">12.4. </a><a href="#name-step-4-set-the-position" class="section-name selfRef">Step 4 - Set the Position</a>
         </h3>
-<p id="section-12.4-1">The attester sets:<a href="#section-12.4-1" class="pilcrow">¶</a></p>
+<p id="section-12.4-1">If creating a new chain:<a href="#section-12.4-1" class="pilcrow">¶</a></p>
 <div class="lang-json sourcecode" id="section-12.4-2">
-<pre>
-"op": "attest_client"
-</pre><a href="#section-12.4-2" class="pilcrow">¶</a>
-</div>
-</section>
-</div>
-<div id="step-5-set-the-role">
-<section id="section-12.5">
-        <h3 id="name-step-5-set-the-role">
-<a href="#section-12.5" class="section-number selfRef">12.5. </a><a href="#name-step-5-set-the-role" class="section-name selfRef">Step 5 - Set the Role</a>
-        </h3>
-<p id="section-12.5-1">The attester sets <code>role</code> to its own role in this hop.<a href="#section-12.5-1" class="pilcrow">¶</a></p>
-<p id="section-12.5-2">Common values are:<a href="#section-12.5-2" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-12.5-3">
-<pre>
-"as"
-</pre><a href="#section-12.5-3" class="pilcrow">¶</a>
-</div>
-<p id="section-12.5-4">and:<a href="#section-12.5-4" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-12.5-5">
-<pre>
-"broker"
-</pre><a href="#section-12.5-5" class="pilcrow">¶</a>
-</div>
-<p id="section-12.5-6">This document does not define a registry for <code>role</code> values.<a href="#section-12.5-6" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="step-6-set-the-position">
-<section id="section-12.6">
-        <h3 id="name-step-6-set-the-position">
-<a href="#section-12.6" class="section-number selfRef">12.6. </a><a href="#name-step-6-set-the-position" class="section-name selfRef">Step 6 - Set the Position</a>
-        </h3>
-<p id="section-12.6-1">If creating a new chain:<a href="#section-12.6-1" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-12.6-2">
 <pre>
 "n": 0,
 "p_hash": null
-</pre><a href="#section-12.6-2" class="pilcrow">¶</a>
+</pre><a href="#section-12.4-2" class="pilcrow">¶</a>
 </div>
-<p id="section-12.6-3">If extending an existing chain, the attester sets <code>n</code> to the previous node's <code>n</code> plus one and sets <code>p_hash</code> to <code>event_hash(previous_node)</code>.<a href="#section-12.6-3" class="pilcrow">¶</a></p>
+<p id="section-12.4-3">If extending an existing chain, the attester sets <code>n</code> to the previous node's <code>n</code> plus one and sets <code>p_hash</code> to <code>event_hash(previous_node)</code>.<a href="#section-12.4-3" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="step-7-add-optional-display-or-resource-information">
-<section id="section-12.7">
-        <h3 id="name-step-7-add-optional-display">
-<a href="#section-12.7" class="section-number selfRef">12.7. </a><a href="#name-step-7-add-optional-display" class="section-name selfRef">Step 7 - Add Optional Display or Resource Information</a>
+<div id="step-5-add-optional-display-or-resource-information">
+<section id="section-12.5">
+        <h3 id="name-step-5-add-optional-display">
+<a href="#section-12.5" class="section-number selfRef">12.5. </a><a href="#name-step-5-add-optional-display" class="section-name selfRef">Step 5 - Add Optional Display or Resource Information</a>
         </h3>
-<p id="section-12.7-1">The attester <span class="bcp14">MAY</span> include <code>client_name</code> for user interface purposes.<a href="#section-12.7-1" class="pilcrow">¶</a></p>
-<p id="section-12.7-2">The attester <span class="bcp14">MAY</span> include <code>resource</code> to identify intended protected resources.<a href="#section-12.7-2" class="pilcrow">¶</a></p>
-<p id="section-12.7-3">The <code>client_name</code> value <span class="bcp14">MUST NOT</span> be used as a security identifier.<a href="#section-12.7-3" class="pilcrow">¶</a></p>
-<p id="section-12.7-4">Additional claims <span class="bcp14">MAY</span> be added as parties see fit, subject to local policy or future specifications.<a href="#section-12.7-4" class="pilcrow">¶</a></p>
+<p id="section-12.5-1">The attester <span class="bcp14">MAY</span> include <code>client_name</code> for user interface purposes.<a href="#section-12.5-1" class="pilcrow">¶</a></p>
+<p id="section-12.5-2">The attester <span class="bcp14">MAY</span> include <code>resource</code> to identify intended protected resources.<a href="#section-12.5-2" class="pilcrow">¶</a></p>
+<p id="section-12.5-3">The <code>client_name</code> value <span class="bcp14">MUST NOT</span> be used as a security identifier.<a href="#section-12.5-3" class="pilcrow">¶</a></p>
+<p id="section-12.5-4">Additional claims <span class="bcp14">MAY</span> be added as parties see fit, subject to local policy or future specifications.<a href="#section-12.5-4" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="step-8-sign-the-node">
-<section id="section-12.8">
-        <h3 id="name-step-8-sign-the-node">
-<a href="#section-12.8" class="section-number selfRef">12.8. </a><a href="#name-step-8-sign-the-node" class="section-name selfRef">Step 8 - Sign the Node</a>
+<div id="step-6-sign-the-node">
+<section id="section-12.6">
+        <h3 id="name-step-6-sign-the-node">
+<a href="#section-12.6" class="section-number selfRef">12.6. </a><a href="#name-step-6-sign-the-node" class="section-name selfRef">Step 6 - Sign the Node</a>
         </h3>
-<p id="section-12.8-1">The attester constructs the detached JWS payload as described in <a href="#signature-input" class="auto internal xref">Section 10</a>.<a href="#section-12.8-1" class="pilcrow">¶</a></p>
-<p id="section-12.8-2">The attester creates a JWS Protected Header containing at least:<a href="#section-12.8-2" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-12.8-3">
+<p id="section-12.6-1">The attester constructs the detached JWS payload as described in <a href="#signature-input" class="auto internal xref">Section 10</a>.<a href="#section-12.6-1" class="pilcrow">¶</a></p>
+<p id="section-12.6-2">The attester creates a JWS Protected Header containing at least:<a href="#section-12.6-2" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-12.6-3">
 <pre>
 {
   "alg": "ES256",
   "kid": "attester-key-1"
 }
-</pre><a href="#section-12.8-3" class="pilcrow">¶</a>
+</pre><a href="#section-12.6-3" class="pilcrow">¶</a>
 </div>
-<p id="section-12.8-4">The attester signs the detached JWS payload using the private key corresponding to the public key published in its <code>jwks_uri</code>.<a href="#section-12.8-4" class="pilcrow">¶</a></p>
-<p id="section-12.8-5">The attester places the compact detached JWS in <code>proof.jws</code>:<a href="#section-12.8-5" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-12.8-6">
+<p id="section-12.6-4">The attester signs the detached JWS payload using the private key corresponding to the public key published in its <code>jwks_uri</code>.<a href="#section-12.6-4" class="pilcrow">¶</a></p>
+<p id="section-12.6-5">The attester places the compact detached JWS in <code>proof.jws</code>:<a href="#section-12.6-5" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-12.6-6">
 <pre>
 "proof": {
   "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImF0dGVzdGVyLWtleS0xIn0..base64url-signature"
 }
-</pre><a href="#section-12.8-6" class="pilcrow">¶</a>
+</pre><a href="#section-12.6-6" class="pilcrow">¶</a>
 </div>
-<p id="section-12.8-7">The JWS payload segment <span class="bcp14">MUST</span> be empty in the compact serialization, because the payload is detached and represented by the delegation node JSON object itself.<a href="#section-12.8-7" class="pilcrow">¶</a></p>
+<p id="section-12.6-7">The JWS payload segment <span class="bcp14">MUST</span> be empty in the compact serialization, because the payload is detached and represented by the delegation node JSON object itself.<a href="#section-12.6-7" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="step-9-forward-the-chain">
-<section id="section-12.9">
-        <h3 id="name-step-9-forward-the-chain">
-<a href="#section-12.9" class="section-number selfRef">12.9. </a><a href="#name-step-9-forward-the-chain" class="section-name selfRef">Step 9 - Forward the Chain</a>
+<div id="step-7-forward-the-chain">
+<section id="section-12.7">
+        <h3 id="name-step-7-forward-the-chain">
+<a href="#section-12.7" class="section-number selfRef">12.7. </a><a href="#name-step-7-forward-the-chain" class="section-name selfRef">Step 7 - Forward the Chain</a>
         </h3>
-<p id="section-12.9-1">The attester includes the updated chain in an <code>authorization_details</code> object with type <code>oauth_delegation_chain</code>.<a href="#section-12.9-1" class="pilcrow">¶</a></p>
+<p id="section-12.7-1">The attester includes the updated chain in an <code>authorization_details</code> object with type <code>oauth_request_delegation_chain</code>.<a href="#section-12.7-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2290,7 +2218,7 @@ chain[i].n = chain[i - 1].n + 1
 <p id="section-13.1-1">The authorization server validates that the authorization detail object contains:<a href="#section-13.1-1" class="pilcrow">¶</a></p>
 <div class="lang-json sourcecode" id="section-13.1-2">
 <pre>
-"type": "oauth_delegation_chain"
+"type": "oauth_request_delegation_chain"
 </pre><a href="#section-13.1-2" class="pilcrow">¶</a>
 </div>
 <p id="section-13.1-3">and that <code>chain</code> is a non-empty JSON array.<a href="#section-13.1-3" class="pilcrow">¶</a></p>
@@ -2301,8 +2229,6 @@ iss
 aud
 n
 p_hash
-op
-role
 client_ns
 client_id
 proof.jws
@@ -2311,209 +2237,195 @@ proof.jws
 <p id="section-13.1-6">A receiver <span class="bcp14">MAY</span> reject nodes containing unsupported values or unsupported extension members.<a href="#section-13.1-6" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="step-2-operation-validation">
+<div id="step-2-client-namespace-validation">
 <section id="section-13.2">
-        <h3 id="name-step-2-operation-validation">
-<a href="#section-13.2" class="section-number selfRef">13.2. </a><a href="#name-step-2-operation-validation" class="section-name selfRef">Step 2 - Operation Validation</a>
+        <h3 id="name-step-2-client-namespace-val">
+<a href="#section-13.2" class="section-number selfRef">13.2. </a><a href="#name-step-2-client-namespace-val" class="section-name selfRef">Step 2 - Client Namespace Validation</a>
         </h3>
-<p id="section-13.2-1">The authorization server verifies that each node contains:<a href="#section-13.2-1" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-13.2-2">
-<pre>
-"op": "attest_client"
-</pre><a href="#section-13.2-2" class="pilcrow">¶</a>
-</div>
-<p id="section-13.2-3">If the authorization server does not support the operation, it <span class="bcp14">MUST</span> reject the authorization detail object.<a href="#section-13.2-3" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="step-3-client-namespace-validation">
-<section id="section-13.3">
-        <h3 id="name-step-3-client-namespace-val">
-<a href="#section-13.3" class="section-number selfRef">13.3. </a><a href="#name-step-3-client-namespace-val" class="section-name selfRef">Step 3 - Client Namespace Validation</a>
-        </h3>
-<p id="section-13.3-1">The authorization server verifies that each node contains a supported <code>client_ns</code> value.<a href="#section-13.3-1" class="pilcrow">¶</a></p>
-<p id="section-13.3-2">This profile defines:<a href="#section-13.3-2" class="pilcrow">¶</a></p>
-<div class="lang-text sourcecode" id="section-13.3-3">
+<p id="section-13.2-1">The authorization server verifies that each node contains a supported <code>client_ns</code> value.<a href="#section-13.2-1" class="pilcrow">¶</a></p>
+<p id="section-13.2-2">This profile defines:<a href="#section-13.2-2" class="pilcrow">¶</a></p>
+<div class="lang-text sourcecode" id="section-13.2-3">
 <pre>
 as
 cimd
-</pre><a href="#section-13.3-3" class="pilcrow">¶</a>
+</pre><a href="#section-13.2-3" class="pilcrow">¶</a>
 </div>
-<p id="section-13.3-4">If the authorization server does not support the <code>client_ns</code> value, it <span class="bcp14">MUST</span> reject the authorization detail object.<a href="#section-13.3-4" class="pilcrow">¶</a></p>
+<p id="section-13.2-4">If the authorization server does not support the <code>client_ns</code> value, it <span class="bcp14">MUST</span> reject the authorization detail object.<a href="#section-13.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="step-4-ordering-validation">
-<section id="section-13.4">
-        <h3 id="name-step-4-ordering-validation">
-<a href="#section-13.4" class="section-number selfRef">13.4. </a><a href="#name-step-4-ordering-validation" class="section-name selfRef">Step 4 - Ordering Validation</a>
+<div id="step-3-ordering-validation">
+<section id="section-13.3">
+        <h3 id="name-step-3-ordering-validation">
+<a href="#section-13.3" class="section-number selfRef">13.3. </a><a href="#name-step-3-ordering-validation" class="section-name selfRef">Step 3 - Ordering Validation</a>
         </h3>
-<p id="section-13.4-1">The authorization server verifies:<a href="#section-13.4-1" class="pilcrow">¶</a></p>
-<div class="lang-text sourcecode" id="section-13.4-2">
+<p id="section-13.3-1">The authorization server verifies:<a href="#section-13.3-1" class="pilcrow">¶</a></p>
+<div class="lang-text sourcecode" id="section-13.3-2">
 <pre>
 chain[0].n == 0
 chain[0].p_hash == null
 chain[i].n == chain[i - 1].n + 1
-</pre><a href="#section-13.4-2" class="pilcrow">¶</a>
+</pre><a href="#section-13.3-2" class="pilcrow">¶</a>
 </div>
-<p id="section-13.4-3">for every <code>i &gt; 0</code>.<a href="#section-13.4-3" class="pilcrow">¶</a></p>
+<p id="section-13.3-3">for every <code>i &gt; 0</code>.<a href="#section-13.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="step-5-hash-chain-validation">
-<section id="section-13.5">
-        <h3 id="name-step-5-hash-chain-validatio">
-<a href="#section-13.5" class="section-number selfRef">13.5. </a><a href="#name-step-5-hash-chain-validatio" class="section-name selfRef">Step 5 - Hash-Chain Validation</a>
+<div id="step-4-hash-chain-validation">
+<section id="section-13.4">
+        <h3 id="name-step-4-hash-chain-validatio">
+<a href="#section-13.4" class="section-number selfRef">13.4. </a><a href="#name-step-4-hash-chain-validatio" class="section-name selfRef">Step 4 - Hash-Chain Validation</a>
         </h3>
-<p id="section-13.5-1">For every node after the first, the authorization server verifies:<a href="#section-13.5-1" class="pilcrow">¶</a></p>
-<div class="lang-text sourcecode" id="section-13.5-2">
+<p id="section-13.4-1">For every node after the first, the authorization server verifies:<a href="#section-13.4-1" class="pilcrow">¶</a></p>
+<div class="lang-text sourcecode" id="section-13.4-2">
 <pre>
 chain[i].p_hash == event_hash(chain[i - 1])
-</pre><a href="#section-13.5-2" class="pilcrow">¶</a>
+</pre><a href="#section-13.4-2" class="pilcrow">¶</a>
 </div>
-<p id="section-13.5-3">where <code>event_hash</code> is computed over the previous node's deterministic detached JWS payload and its <code>proof.jws</code> value.<a href="#section-13.5-3" class="pilcrow">¶</a></p>
-<p id="section-13.5-4">If any hash comparison fails, the authorization server <span class="bcp14">MUST</span> reject the chain.<a href="#section-13.5-4" class="pilcrow">¶</a></p>
+<p id="section-13.4-3">where <code>event_hash</code> is computed over the previous node's deterministic detached JWS payload and its <code>proof.jws</code> value.<a href="#section-13.4-3" class="pilcrow">¶</a></p>
+<p id="section-13.4-4">If any hash comparison fails, the authorization server <span class="bcp14">MUST</span> reject the chain.<a href="#section-13.4-4" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="step-6-signature-validation">
-<section id="section-13.6">
-        <h3 id="name-step-6-signature-validation">
-<a href="#section-13.6" class="section-number selfRef">13.6. </a><a href="#name-step-6-signature-validation" class="section-name selfRef">Step 6 - Signature Validation</a>
+<div id="step-5-signature-validation">
+<section id="section-13.5">
+        <h3 id="name-step-5-signature-validation">
+<a href="#section-13.5" class="section-number selfRef">13.5. </a><a href="#name-step-5-signature-validation" class="section-name selfRef">Step 5 - Signature Validation</a>
         </h3>
-<p id="section-13.6-1">For each node, the authorization server:<a href="#section-13.6-1" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-13.6-2">
-<li id="section-13.6-2.1">
-            <p id="section-13.6-2.1.1">Reads <code>iss</code>.<a href="#section-13.6-2.1.1" class="pilcrow">¶</a></p>
+<p id="section-13.5-1">For each node, the authorization server:<a href="#section-13.5-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-13.5-2">
+<li id="section-13.5-2.1">
+            <p id="section-13.5-2.1.1">Reads <code>iss</code>.<a href="#section-13.5-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-13.6-2.2">
-            <p id="section-13.6-2.2.1">Reads <code>proof.jws</code>.<a href="#section-13.6-2.2.1" class="pilcrow">¶</a></p>
+          <li id="section-13.5-2.2">
+            <p id="section-13.5-2.2.1">Reads <code>proof.jws</code>.<a href="#section-13.5-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-13.6-2.3">
-            <p id="section-13.6-2.3.1">Parses <code>proof.jws</code> as a compact detached JWS.<a href="#section-13.6-2.3.1" class="pilcrow">¶</a></p>
+          <li id="section-13.5-2.3">
+            <p id="section-13.5-2.3.1">Parses <code>proof.jws</code> as a compact detached JWS.<a href="#section-13.5-2.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-13.6-2.4">
-            <p id="section-13.6-2.4.1">Verifies that the compact JWS contains an empty payload segment.<a href="#section-13.6-2.4.1" class="pilcrow">¶</a></p>
+          <li id="section-13.5-2.4">
+            <p id="section-13.5-2.4.1">Verifies that the compact JWS contains an empty payload segment.<a href="#section-13.5-2.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-13.6-2.5">
-            <p id="section-13.6-2.5.1">Decodes the JWS Protected Header.<a href="#section-13.6-2.5.1" class="pilcrow">¶</a></p>
+          <li id="section-13.5-2.5">
+            <p id="section-13.5-2.5.1">Decodes the JWS Protected Header.<a href="#section-13.5-2.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-13.6-2.6">
-            <p id="section-13.6-2.6.1">Verifies that the JWS Protected Header contains <code>alg</code> and <code>kid</code>.<a href="#section-13.6-2.6.1" class="pilcrow">¶</a></p>
+          <li id="section-13.5-2.6">
+            <p id="section-13.5-2.6.1">Verifies that the JWS Protected Header contains <code>alg</code> and <code>kid</code>.<a href="#section-13.5-2.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-13.6-2.7">
-            <p id="section-13.6-2.7.1">Resolves the issuer metadata for <code>iss</code>.<a href="#section-13.6-2.7.1" class="pilcrow">¶</a></p>
+          <li id="section-13.5-2.7">
+            <p id="section-13.5-2.7.1">Resolves the issuer metadata for <code>iss</code>.<a href="#section-13.5-2.7.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-13.6-2.8">
-            <p id="section-13.6-2.8.1">Obtains the issuer's <code>jwks_uri</code>.<a href="#section-13.6-2.8.1" class="pilcrow">¶</a></p>
+          <li id="section-13.5-2.8">
+            <p id="section-13.5-2.8.1">Obtains the issuer's <code>jwks_uri</code>.<a href="#section-13.5-2.8.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-13.6-2.9">
-            <p id="section-13.6-2.9.1">Fetches the issuer's JWK Set.<a href="#section-13.6-2.9.1" class="pilcrow">¶</a></p>
+          <li id="section-13.5-2.9">
+            <p id="section-13.5-2.9.1">Fetches the issuer's JWK Set.<a href="#section-13.5-2.9.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-13.6-2.10">
-            <p id="section-13.6-2.10.1">Selects a key using the JWS Protected Header <code>kid</code>.<a href="#section-13.6-2.10.1" class="pilcrow">¶</a></p>
+          <li id="section-13.5-2.10">
+            <p id="section-13.5-2.10.1">Selects a key using the JWS Protected Header <code>kid</code>.<a href="#section-13.5-2.10.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-13.6-2.11">
-            <p id="section-13.6-2.11.1">Constructs the deterministic detached JWS payload for the node by serializing the node excluding the <code>proof</code> member.<a href="#section-13.6-2.11.1" class="pilcrow">¶</a></p>
+          <li id="section-13.5-2.11">
+            <p id="section-13.5-2.11.1">Constructs the deterministic detached JWS payload for the node by serializing the node excluding the <code>proof</code> member.<a href="#section-13.5-2.11.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-13.6-2.12">
-            <p id="section-13.6-2.12.1">Verifies the detached JWS signature over that payload according to <span>[<a href="#RFC7515" class="cite xref">RFC7515</a>]</span>.<a href="#section-13.6-2.12.1" class="pilcrow">¶</a></p>
+          <li id="section-13.5-2.12">
+            <p id="section-13.5-2.12.1">Verifies the detached JWS signature over that payload according to <span>[<a href="#RFC7515" class="cite xref">RFC7515</a>]</span>.<a href="#section-13.5-2.12.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
-<p id="section-13.6-3">If a signature cannot be verified, the authorization server <span class="bcp14">MUST</span> reject the chain.<a href="#section-13.6-3" class="pilcrow">¶</a></p>
+<p id="section-13.5-3">If a signature cannot be verified, the authorization server <span class="bcp14">MUST</span> reject the chain.<a href="#section-13.5-3" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="step-7-audience-validation">
-<section id="section-13.7">
-        <h3 id="name-step-7-audience-validation">
-<a href="#section-13.7" class="section-number selfRef">13.7. </a><a href="#name-step-7-audience-validation" class="section-name selfRef">Step 7 - Audience Validation</a>
+<div id="step-6-audience-validation">
+<section id="section-13.6">
+        <h3 id="name-step-6-audience-validation">
+<a href="#section-13.6" class="section-number selfRef">13.6. </a><a href="#name-step-6-audience-validation" class="section-name selfRef">Step 6 - Audience Validation</a>
         </h3>
-<p id="section-13.7-1">The authorization server verifies that the final node is intended for it:<a href="#section-13.7-1" class="pilcrow">¶</a></p>
-<div class="lang-text sourcecode" id="section-13.7-2">
+<p id="section-13.6-1">The authorization server verifies that the final node is intended for it:<a href="#section-13.6-1" class="pilcrow">¶</a></p>
+<div class="lang-text sourcecode" id="section-13.6-2">
 <pre>
 chain[last].aud == receiving_authorization_server_issuer
-</pre><a href="#section-13.7-2" class="pilcrow">¶</a>
+</pre><a href="#section-13.6-2" class="pilcrow">¶</a>
 </div>
-<p id="section-13.7-3">For intermediate nodes, the authorization server <span class="bcp14">SHOULD</span> verify:<a href="#section-13.7-3" class="pilcrow">¶</a></p>
-<div class="lang-text sourcecode" id="section-13.7-4">
+<p id="section-13.6-3">For intermediate nodes, the authorization server <span class="bcp14">SHOULD</span> verify:<a href="#section-13.6-3" class="pilcrow">¶</a></p>
+<div class="lang-text sourcecode" id="section-13.6-4">
 <pre>
 chain[i].aud == chain[i + 1].iss
-</pre><a href="#section-13.7-4" class="pilcrow">¶</a>
+</pre><a href="#section-13.6-4" class="pilcrow">¶</a>
 </div>
-<p id="section-13.7-5">This ensures that the chain path matches the intended authorization server or broker-AS path.<a href="#section-13.7-5" class="pilcrow">¶</a></p>
-<p id="section-13.7-6">The <code>aud</code> value identifies an authorization server or broker-AS, not a protected resource API. Protected resource identifiers are represented using the <code>resource</code> member.<a href="#section-13.7-6" class="pilcrow">¶</a></p>
+<p id="section-13.6-5">This ensures that the chain path matches the intended authorization server or broker-AS path.<a href="#section-13.6-5" class="pilcrow">¶</a></p>
+<p id="section-13.6-6">The <code>aud</code> value identifies an authorization server or broker-AS, not a protected resource API. Protected resource identifiers are represented using the <code>resource</code> member.<a href="#section-13.6-6" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="step-8-resource-consistency-validation">
+<div id="step-7-resource-consistency-validation">
+<section id="section-13.7">
+        <h3 id="name-step-7-resource-consistency">
+<a href="#section-13.7" class="section-number selfRef">13.7. </a><a href="#name-step-7-resource-consistency" class="section-name selfRef">Step 7 - Resource Consistency Validation</a>
+        </h3>
+<p id="section-13.7-1">If multiple nodes contain <code>resource</code>, the authorization server <span class="bcp14">SHOULD</span> verify that the resource value is consistent across the chain, unless local policy explicitly permits resource transformation.<a href="#section-13.7-1" class="pilcrow">¶</a></p>
+<p id="section-13.7-2">A protected API endpoint <span class="bcp14">MUST NOT</span> appear in <code>aud</code>.<a href="#section-13.7-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="step-8-relationship-validation">
 <section id="section-13.8">
-        <h3 id="name-step-8-resource-consistency">
-<a href="#section-13.8" class="section-number selfRef">13.8. </a><a href="#name-step-8-resource-consistency" class="section-name selfRef">Step 8 - Resource Consistency Validation</a>
+        <h3 id="name-step-8-relationship-validat">
+<a href="#section-13.8" class="section-number selfRef">13.8. </a><a href="#name-step-8-relationship-validat" class="section-name selfRef">Step 8 - Relationship Validation</a>
         </h3>
-<p id="section-13.8-1">If multiple nodes contain <code>resource</code>, the authorization server <span class="bcp14">SHOULD</span> verify that the resource value is consistent across the chain, unless local policy explicitly permits resource transformation.<a href="#section-13.8-1" class="pilcrow">¶</a></p>
-<p id="section-13.8-2">A protected API endpoint <span class="bcp14">MUST NOT</span> appear in <code>aud</code>.<a href="#section-13.8-2" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="step-9-relationship-validation">
-<section id="section-13.9">
-        <h3 id="name-step-9-relationship-validat">
-<a href="#section-13.9" class="section-number selfRef">13.9. </a><a href="#name-step-9-relationship-validat" class="section-name selfRef">Step 9 - Relationship Validation</a>
-        </h3>
-<p id="section-13.9-1">The authorization server <span class="bcp14">SHOULD</span> verify that adjacent nodes are consistent.<a href="#section-13.9-1" class="pilcrow">¶</a></p>
-<p id="section-13.9-2">For a chain:<a href="#section-13.9-2" class="pilcrow">¶</a></p>
-<div class="lang-text sourcecode" id="section-13.9-3">
+<p id="section-13.8-1">The authorization server <span class="bcp14">SHOULD</span> verify that adjacent nodes are consistent.<a href="#section-13.8-1" class="pilcrow">¶</a></p>
+<p id="section-13.8-2">For a chain:<a href="#section-13.8-2" class="pilcrow">¶</a></p>
+<div class="lang-text sourcecode" id="section-13.8-3">
 <pre>
 node[0] -&gt; node[1] -&gt; node[2]
-</pre><a href="#section-13.9-3" class="pilcrow">¶</a>
+</pre><a href="#section-13.8-3" class="pilcrow">¶</a>
 </div>
-<p id="section-13.9-4">the following should hold:<a href="#section-13.9-4" class="pilcrow">¶</a></p>
-<div class="lang-text sourcecode" id="section-13.9-5">
+<p id="section-13.8-4">the following should hold:<a href="#section-13.8-4" class="pilcrow">¶</a></p>
+<div class="lang-text sourcecode" id="section-13.8-5">
 <pre>
 node[0].aud == node[1].iss
 node[1].aud == node[2].iss
-</pre><a href="#section-13.9-5" class="pilcrow">¶</a>
+</pre><a href="#section-13.8-5" class="pilcrow">¶</a>
 </div>
-<p id="section-13.9-6">The final node identifies the client that the immediate trusted broker is attesting. Prior nodes reveal what that client was itself carrying.<a href="#section-13.9-6" class="pilcrow">¶</a></p>
-<p id="section-13.9-7">For example, if the final node is:<a href="#section-13.9-7" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-13.9-8">
+<p id="section-13.8-6">The final node identifies the client that the immediate trusted broker is attesting. Prior nodes reveal what that client was itself carrying.<a href="#section-13.8-6" class="pilcrow">¶</a></p>
+<p id="section-13.8-7">For example, if the final node is:<a href="#section-13.8-7" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-13.8-8">
 <pre>
 {
   "iss": "https://broker-c.example.com",
   "client_ns": "as",
   "client_id": "broker-b-client"
 }
-</pre><a href="#section-13.9-8" class="pilcrow">¶</a>
+</pre><a href="#section-13.8-8" class="pilcrow">¶</a>
 </div>
-<p id="section-13.9-9">then the authorization server treats broker-c as attesting broker-b-client.<a href="#section-13.9-9" class="pilcrow">¶</a></p>
-<p id="section-13.9-10">The authorization server then validates the prior node signed by broker-b to determine which client broker-b was carrying.<a href="#section-13.9-10" class="pilcrow">¶</a></p>
+<p id="section-13.8-9">then the authorization server treats broker-c as attesting broker-b-client.<a href="#section-13.8-9" class="pilcrow">¶</a></p>
+<p id="section-13.8-10">The authorization server then validates the prior node signed by broker-b to determine which client broker-b was carrying.<a href="#section-13.8-10" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="step-10-policy-validation">
-<section id="section-13.10">
-        <h3 id="name-step-10-policy-validation">
-<a href="#section-13.10" class="section-number selfRef">13.10. </a><a href="#name-step-10-policy-validation" class="section-name selfRef">Step 10 - Policy Validation</a>
+<div id="step-9-policy-validation">
+<section id="section-13.9">
+        <h3 id="name-step-9-policy-validation">
+<a href="#section-13.9" class="section-number selfRef">13.9. </a><a href="#name-step-9-policy-validation" class="section-name selfRef">Step 9 - Policy Validation</a>
         </h3>
-<p id="section-13.10-1">After cryptographic validation, the authorization server applies local policy.<a href="#section-13.10-1" class="pilcrow">¶</a></p>
-<p id="section-13.10-2">Policy decisions can consider:<a href="#section-13.10-2" class="pilcrow">¶</a></p>
+<p id="section-13.9-1">After cryptographic validation, the authorization server applies local policy.<a href="#section-13.9-1" class="pilcrow">¶</a></p>
+<p id="section-13.9-2">Policy decisions can consider:<a href="#section-13.9-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-13.10-3.1">
-            <p id="section-13.10-3.1.1">the immediate client authenticated to the authorization server,<a href="#section-13.10-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-13.9-3.1">
+            <p id="section-13.9-3.1.1">the immediate client authenticated to the authorization server,<a href="#section-13.9-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-13.10-3.2">
-            <p id="section-13.10-3.2.1">the final node's <code>iss</code>,<a href="#section-13.10-3.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-13.9-3.2">
+            <p id="section-13.9-3.2.1">the final node's <code>iss</code>,<a href="#section-13.9-3.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-13.10-3.3">
-            <p id="section-13.10-3.3.1">the full set of brokers in the chain,<a href="#section-13.10-3.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-13.9-3.3">
+            <p id="section-13.9-3.3.1">the full set of brokers in the chain,<a href="#section-13.9-3.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-13.10-3.4">
-            <p id="section-13.10-3.4.1">the terminal client identified by the earliest client attestation,<a href="#section-13.10-3.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-13.9-3.4">
+            <p id="section-13.9-3.4.1">the terminal client identified by the earliest client attestation,<a href="#section-13.9-3.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-13.10-3.5">
-            <p id="section-13.10-3.5.1">the resources identified by <code>resource</code>,<a href="#section-13.10-3.5.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-13.9-3.5">
+            <p id="section-13.9-3.5.1">the resources identified by <code>resource</code>,<a href="#section-13.9-3.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-13.10-3.6">
-            <p id="section-13.10-3.6.1">the user subject identified by <code>sub</code>, if present, and<a href="#section-13.10-3.6.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-13.9-3.6">
+            <p id="section-13.9-3.6.1">the user subject identified by <code>sub</code>, if present, and<a href="#section-13.9-3.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-13.10-3.7">
-            <p id="section-13.10-3.7.1">the full delegation chain hash.<a href="#section-13.10-3.7.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-13.9-3.7">
+            <p id="section-13.9-3.7.1">the full delegation chain hash.<a href="#section-13.9-3.7.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-13.10-4">The authorization server <span class="bcp14">MAY</span> reject the request if any broker, client, namespace, resource, or path is not allowed.<a href="#section-13.10-4" class="pilcrow">¶</a></p>
+<p id="section-13.9-4">The authorization server <span class="bcp14">MAY</span> reject the request if any broker, client, namespace, resource, or path is not allowed.<a href="#section-13.9-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2561,7 +2473,7 @@ user-456
       <h2 id="name-authorization-server-consid">
 <a href="#section-15" class="section-number selfRef">15. </a><a href="#name-authorization-server-consid" class="section-name selfRef">Authorization Server Considerations</a>
       </h2>
-<p id="section-15-1">An authorization server that receives an <code>oauth_delegation_chain</code> authorization detail object <span class="bcp14">SHOULD</span> evaluate whether the chain is required for the requested transaction.<a href="#section-15-1" class="pilcrow">¶</a></p>
+<p id="section-15-1">An authorization server that receives an <code>oauth_request_delegation_chain</code> authorization detail object <span class="bcp14">SHOULD</span> evaluate whether the chain is required for the requested transaction.<a href="#section-15-1" class="pilcrow">¶</a></p>
 <p id="section-15-2">If the authorization server supports this profile but the chain is absent, incomplete, or invalid, the authorization server <span class="bcp14">MAY</span> reject the request according to normal RAR processing rules <span>[<a href="#RFC9396" class="cite xref">RFC9396</a>]</span>.<a href="#section-15-2" class="pilcrow">¶</a></p>
 <p id="section-15-3">An authorization server <span class="bcp14">MAY</span> include the approved <code>authorization_details</code> object in an access token or token introspection response when appropriate. However, this document does not define a token format or require the chain to be propagated to resource servers.<a href="#section-15-3" class="pilcrow">¶</a></p>
 <p id="section-15-4">Where token size or privacy considerations apply, an authorization server <span class="bcp14">SHOULD</span> consider storing the validated chain server-side and exposing only necessary authorization results to resource servers.<a href="#section-15-4" class="pilcrow">¶</a></p>
@@ -2645,7 +2557,7 @@ user-456
 <a href="#section-17" class="section-number selfRef">17. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
       </h2>
 <p id="section-17-1">This document makes no IANA requests.<a href="#section-17-1" class="pilcrow">¶</a></p>
-<p id="section-17-2">A future standards-track version of this document may request registration of the <code>oauth_delegation_chain</code> authorization details type.<a href="#section-17-2" class="pilcrow">¶</a></p>
+<p id="section-17-2">A future standards-track version of this document may request registration of the <code>oauth_request_delegation_chain</code> authorization details type.<a href="#section-17-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="sec-combined-references">
@@ -2766,18 +2678,16 @@ client-123 -&gt; broker-a -&gt; broker-b -&gt; broker-c -&gt; as-domain-1
         <h3 id="name-full-authorization-details-">
 <a href="#appendix-A.1" class="section-number selfRef">A.1. </a><a href="#name-full-authorization-details-" class="section-name selfRef">Full Authorization Details Object</a>
         </h3>
-<div class="breakable lang-json sourcecode" id="appendix-A.1-1">
+<div class="lang-json sourcecode" id="appendix-A.1-1">
 <pre>
 {
-  "type": "oauth_delegation_chain",
+  "type": "oauth_request_delegation_chain",
   "chain": [
     {
       "iss": "https://broker-a.example.com",
       "aud": "https://broker-b.example.com",
       "n": 0,
       "p_hash": null,
-      "op": "attest_client",
-      "role": "broker",
       "client_ns": "as",
       "client_id": "client-123",
       "client_name": "Client 123",
@@ -2791,8 +2701,6 @@ client-123 -&gt; broker-a -&gt; broker-b -&gt; broker-c -&gt; as-domain-1
       "aud": "https://broker-c.example.com",
       "n": 1,
       "p_hash": "hash-of-node-0-event",
-      "op": "attest_client",
-      "role": "broker",
       "client_ns": "as",
       "client_id": "broker-a-client",
       "client_name": "Broker A",
@@ -2806,8 +2714,6 @@ client-123 -&gt; broker-a -&gt; broker-b -&gt; broker-c -&gt; as-domain-1
       "aud": "https://as-domain-1.example.com",
       "n": 2,
       "p_hash": "hash-of-node-1-event",
-      "op": "attest_client",
-      "role": "broker",
       "client_ns": "as",
       "client_id": "broker-b-client",
       "client_name": "Broker B",
@@ -2913,15 +2819,13 @@ client-123 -&gt; broker-a -&gt; broker-b -&gt; broker-c -&gt; as-domain-1
 <div class="lang-json sourcecode" id="appendix-B.1-1">
 <pre>
 {
-  "type": "oauth_delegation_chain",
+  "type": "oauth_request_delegation_chain",
   "chain": [
     {
       "iss": "https://broker-a.example.com",
       "aud": "https://broker-b.example.com",
       "n": 0,
       "p_hash": null,
-      "op": "attest_client",
-      "role": "broker",
       "client_ns": "cimd",
       "client_id": "https://client-123.example.com/oauth-client-metadata.json",
       "resource": ["https://api-domain-1.example.com"],
@@ -2934,8 +2838,6 @@ client-123 -&gt; broker-a -&gt; broker-b -&gt; broker-c -&gt; as-domain-1
       "aud": "https://broker-c.example.com",
       "n": 1,
       "p_hash": "hash-of-node-0-event",
-      "op": "attest_client",
-      "role": "broker",
       "client_ns": "cimd",
       "client_id": "https://broker-a.example.com/client",
       "resource": ["https://api-domain-1.example.com"],
@@ -2948,8 +2850,6 @@ client-123 -&gt; broker-a -&gt; broker-b -&gt; broker-c -&gt; as-domain-1
       "aud": "https://as-domain-1.example.com",
       "n": 2,
       "p_hash": "hash-of-node-1-event",
-      "op": "attest_client",
-      "role": "broker",
       "client_ns": "cimd",
       "client_id": "https://broker-b.example.com/client",
       "resource": ["https://api-domain-1.example.com"],
@@ -3028,8 +2928,6 @@ broker-c -&gt; broker-b -&gt; broker-a -&gt; client-123
   "aud": "https://as-domain-1.example.com",
   "n": 2,
   "p_hash": "hash-of-node-1-event",
-  "op": "attest_client",
-  "role": "broker",
   "client_ns": "as",
   "client_id": "broker-b-client",
   "resource": ["https://api-domain-1.example.com"],
@@ -3047,8 +2945,6 @@ iss=https://broker-c.example.com
 aud=https://as-domain-1.example.com
 n=2
 p_hash=hash-of-node-1-event
-op=attest_client
-role=broker
 client_ns=as
 client_id=broker-b-client
 resource=https://api-domain-1.example.com
@@ -3077,7 +2973,7 @@ resource=https://api-domain-1.example.com
           <p id="appendix-D-2.1.1">Initial version.<a href="#appendix-D-2.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-2.2">
-          <p id="appendix-D-2.2.1">Defined <code>oauth_delegation_chain</code> authorization details type.<a href="#appendix-D-2.2.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-2.2.1">Defined <code>oauth_request_delegation_chain</code> authorization details type.<a href="#appendix-D-2.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-2.3">
           <p id="appendix-D-2.3.1">Defined signed authorization request delegation nodes using <code>iss</code>, <code>aud</code>, <code>client_ns</code>, and <code>client_id</code>.<a href="#appendix-D-2.3.1" class="pilcrow">¶</a></p>
