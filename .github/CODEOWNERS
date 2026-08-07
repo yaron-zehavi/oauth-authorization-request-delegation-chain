@@ -1,0 +1,5 @@
+# Automatically generated CODEOWNERS
+# Regenerate with `make update-codeowners`
+draft-todo-yourname-protocol.md yaron.zehavi@rbinternational.com
+draft-zehavi-oauth-authz-req-del-chain.md yaron.zehavi@rbinternational.com
+draft-zehavi-oauth-req-del-chain.md yaron.zehavi@rbinternational.com
