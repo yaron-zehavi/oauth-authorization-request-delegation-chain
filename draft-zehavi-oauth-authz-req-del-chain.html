@@ -9,7 +9,7 @@
 <meta content="
        Brokered OAuth redirect authorization requests involve intermediary authorization servers or brokers between a downstream client and the upstream authorization server that obtains user consent and issues tokens.
 Such deployments have security risks because the upstream authorization server sees only the immediate OAuth client and is unaware of the downstream client or intermediary brokers obtaining its response. 
-       This document defines an informative OAuth 2.0 profile for carrying a verifiable, signed authorization request delegation chain as a RAR  authorization_details  object  . Each node in the chain is a JSON object signed by the attesting authorization server or broker, attesting its validated client, hash-linked to the previous node, allowing the upstream authorization server to validate the exact delegation path before issuing tokens. 
+       This document defines an informative OAuth 2.0 profile for carrying a verifiable, signed authorization request delegation chain as a RAR  authorization_details  object  . Each node in the chain is a JSON object signed by the attesting authorization server or broker using detached JWS  , attesting its validated client, hash-linked to the previous node, allowing the upstream authorization server to validate the exact delegation path before issuing tokens. 
        This document does not define new OAuth endpoints, grant types, error codes, token formats, token response parameters, or token request parameters. 
     " name="description">
 <meta content="xml2rfc 3.34.0" name="generator">
@@ -1086,7 +1086,7 @@ svg {
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
 <p id="section-abstract-1">Brokered OAuth redirect authorization requests involve intermediary authorization servers or brokers between a downstream client and the upstream authorization server that obtains user consent and issues tokens.
 Such deployments have security risks because the upstream authorization server sees only the immediate OAuth client and is unaware of the downstream client or intermediary brokers obtaining its response.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
-<p id="section-abstract-2">This document defines an informative OAuth 2.0 profile for carrying a verifiable, signed authorization request delegation chain as a RAR <code>authorization_details</code> object <span>[<a href="#RFC9396" class="cite xref">RFC9396</a>]</span>. Each node in the chain is a JSON object signed by the attesting authorization server or broker, attesting its validated client, hash-linked to the previous node, allowing the upstream authorization server to validate the exact delegation path before issuing tokens.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+<p id="section-abstract-2">This document defines an informative OAuth 2.0 profile for carrying a verifiable, signed authorization request delegation chain as a RAR <code>authorization_details</code> object <span>[<a href="#RFC9396" class="cite xref">RFC9396</a>]</span>. Each node in the chain is a JSON object signed by the attesting authorization server or broker using detached JWS <span>[<a href="#RFC7515" class="cite xref">RFC7515</a>]</span>, attesting its validated client, hash-linked to the previous node, allowing the upstream authorization server to validate the exact delegation path before issuing tokens.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
 <p id="section-abstract-3">This document does not define new OAuth endpoints, grant types, error codes, token formats, token response parameters, or token request parameters.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
@@ -1201,7 +1201,7 @@ Such deployments have security risks because the upstream authorization server s
             <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-signature-input" class="internal xref">Signature Input</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.1">
-                <p id="section-toc.1-1.10.2.1.1"><a href="#section-10.1" class="auto internal xref">10.1</a>.  <a href="#name-delegation-chain-signing-in" class="internal xref">Delegation Chain Signing Input Version 1</a></p>
+                <p id="section-toc.1-1.10.2.1.1"><a href="#section-10.1" class="auto internal xref">10.1</a>.  <a href="#name-delegation-chain-signing-pa" class="internal xref">Delegation Chain Signing Payload Version 1</a></p>
 </li>
             </ul>
 </li>
@@ -1344,7 +1344,7 @@ Such deployments have security risks because the upstream authorization server s
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.21">
-            <p id="section-toc.1-1.21.1"><a href="#appendix-C" class="auto internal xref">Appendix C</a>.  <a href="#name-example-signing-input" class="internal xref">Example Signing Input</a></p>
+            <p id="section-toc.1-1.21.1"><a href="#appendix-C" class="auto internal xref">Appendix C</a>.  <a href="#name-example-signing-payload" class="internal xref">Example Signing Payload</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.22">
             <p id="section-toc.1-1.22.1"><a href="#appendix-D" class="auto internal xref">Appendix D</a>.  <a href="#name-document-history" class="internal xref">Document History</a></p>
@@ -1419,7 +1419,7 @@ Such deployments have security risks because the upstream authorization server s
           <p id="section-1-10.6.1">A cryptographic proof over the node.<a href="#section-1-10.6.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-1-11">Each node is signed by the attesting entity and hash-linked to the previous node. The result is a JSON-structured, schema-validatable, tamper-resistant, verifiable signed delegation chain for use during redirect authorization request processing.<a href="#section-1-11" class="pilcrow">¶</a></p>
+<p id="section-1-11">Each node is signed by the attesting entity using detached JWS and hash-linked to the previous node. The result is a JSON-structured, schema-validatable, tamper-resistant, verifiable signed delegation chain for use during redirect authorization request processing.<a href="#section-1-11" class="pilcrow">¶</a></p>
 <p id="section-1-12">This profile is intentionally narrow. It does not define a new grant type, token format, endpoint, token response parameter, or error code. It defines only a proposed RAR <span>[<a href="#RFC9396" class="cite xref">RFC9396</a>]</span> <code>authorization_details</code> type and processing rules for redirect authorization requests.<a href="#section-1-12" class="pilcrow">¶</a></p>
 <div id="relation-to-openid-federation">
 <section id="section-1.1">
@@ -1723,9 +1723,7 @@ resource = https://api-domain-1.example.com
       "client_id": "broker-b-client",
       "resource": ["https://api-domain-1.example.com"],
       "proof": {
-        "alg": "ES256",
-        "kid": "broker-c-key-1",
-        "sig": "base64url-signature"
+        "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImJyb2tlci1jLWtleS0xIn0..base64url-signature"
       }
     }
   ]
@@ -1895,7 +1893,7 @@ client_id
       <h2 id="name-proof-object">
 <a href="#section-8" class="section-number selfRef">8. </a><a href="#name-proof-object" class="section-name selfRef">Proof Object</a>
       </h2>
-<p id="section-8-1">The <code>proof</code> object contains signature metadata and the signature value.<a href="#section-8-1" class="pilcrow">¶</a></p>
+<p id="section-8-1">The <code>proof</code> object contains a detached JWS compact serialization.<a href="#section-8-1" class="pilcrow">¶</a></p>
 <table class="center" id="table-3">
         <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
 <thead>
@@ -1908,24 +1906,10 @@ client_id
         <tbody>
           <tr>
             <td class="text-left" rowspan="1" colspan="1">
-              <code>alg</code>
+              <code>jws</code>
 </td>
             <td class="text-right" rowspan="1" colspan="1">Yes</td>
-            <td class="text-left" rowspan="1" colspan="1">Signature algorithm identifier.</td>
-          </tr>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">
-              <code>kid</code>
-</td>
-            <td class="text-right" rowspan="1" colspan="1">Yes</td>
-            <td class="text-left" rowspan="1" colspan="1">Key identifier.</td>
-          </tr>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">
-              <code>sig</code>
-</td>
-            <td class="text-right" rowspan="1" colspan="1">Yes</td>
-            <td class="text-left" rowspan="1" colspan="1">Base64url-encoded signature value.</td>
+            <td class="text-left" rowspan="1" colspan="1">Detached JWS compact serialization over the delegation node payload.</td>
           </tr>
         </tbody>
       </table>
@@ -1933,20 +1917,35 @@ client_id
 <div class="lang-json sourcecode" id="section-8-4">
 <pre>
 {
-  "alg": "ES256",
-  "kid": "broker-c-key-1",
-  "sig": "MEUCIQD..."
+  "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImJyb2tlci1jLWtleS0xIn0..MEUCIQD..."
 }
 </pre><a href="#section-8-4" class="pilcrow">¶</a>
 </div>
-<p id="section-8-5">The key used to verify <code>proof.sig</code> is resolved from the attester identified by <code>iss</code>.<a href="#section-8-5" class="pilcrow">¶</a></p>
-<p id="section-8-6">A verifier obtains the attester's verification key by resolving:<a href="#section-8-6" class="pilcrow">¶</a></p>
-<div class="lang-text sourcecode" id="section-8-7">
+<p id="section-8-5">The <code>proof.jws</code> value is a JWS Compact Serialization <span>[<a href="#RFC7515" class="cite xref">RFC7515</a>]</span> with a detached payload. The payload segment is empty, resulting in the following form:<a href="#section-8-5" class="pilcrow">¶</a></p>
+<div class="lang-text sourcecode" id="section-8-6">
+<pre>
+BASE64URL(UTF8(JWS Protected Header)) || "." || "" || "." || BASE64URL(JWS Signature)
+</pre><a href="#section-8-6" class="pilcrow">¶</a>
+</div>
+<p id="section-8-7">The JWS Protected Header <span class="bcp14">MUST</span> contain an <code>alg</code> value and a <code>kid</code> value.<a href="#section-8-7" class="pilcrow">¶</a></p>
+<p id="section-8-8">For example, the protected header could be:<a href="#section-8-8" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-8-9">
+<pre>
+{
+  "alg": "ES256",
+  "kid": "broker-c-key-1"
+}
+</pre><a href="#section-8-9" class="pilcrow">¶</a>
+</div>
+<p id="section-8-10">The detached JWS payload is the deterministic serialization of the delegation node excluding the <code>proof</code> member.<a href="#section-8-10" class="pilcrow">¶</a></p>
+<p id="section-8-11">The key used to verify <code>proof.jws</code> is resolved from the attester identified by <code>iss</code>.<a href="#section-8-11" class="pilcrow">¶</a></p>
+<p id="section-8-12">A verifier obtains the attester's verification key by resolving:<a href="#section-8-12" class="pilcrow">¶</a></p>
+<div class="lang-text sourcecode" id="section-8-13">
 <pre>
 iss -&gt; authorization server metadata -&gt; jwks_uri -&gt; JWK selected by kid
-</pre><a href="#section-8-7" class="pilcrow">¶</a>
+</pre><a href="#section-8-13" class="pilcrow">¶</a>
 </div>
-<p id="section-8-8">Because brokers in this profile are also authorization servers, a broker is expected to publish authorization server metadata <span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span> and a <code>jwks_uri</code>.<a href="#section-8-8" class="pilcrow">¶</a></p>
+<p id="section-8-14">Because brokers in this profile are also authorization servers, a broker is expected to publish authorization server metadata <span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span> and a <code>jwks_uri</code>.<a href="#section-8-14" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="operation-attestclient">
@@ -1995,15 +1994,15 @@ client for this hop.
       <h2 id="name-signature-input">
 <a href="#section-10" class="section-number selfRef">10. </a><a href="#name-signature-input" class="section-name selfRef">Signature Input</a>
       </h2>
-<p id="section-10-1">The wire format of a delegation node is JSON. The node is not a JWT and is not processed as a JWT.<a href="#section-10-1" class="pilcrow">¶</a></p>
-<p id="section-10-2">However, because JSON object member order is not significant <span>[<a href="#RFC8259" class="cite xref">RFC8259</a>]</span>, this profile requires deterministic signature input.<a href="#section-10-2" class="pilcrow">¶</a></p>
-<p id="section-10-3">A compliant implementation <span class="bcp14">MUST</span> construct the signature input using the deterministic serialization defined in this section.<a href="#section-10-3" class="pilcrow">¶</a></p>
-<div id="delegation-chain-signing-input-version-1">
+<p id="section-10-1">The wire format of a delegation node is JSON. The node is not a JWT and <span class="bcp14">MUST NOT</span> be processed as a JWT claims set.<a href="#section-10-1" class="pilcrow">¶</a></p>
+<p id="section-10-2">Each node is signed using JSON Web Signature (JWS) <span>[<a href="#RFC7515" class="cite xref">RFC7515</a>]</span> with a detached payload. The detached payload is the deterministic serialization of the delegation node excluding the <code>proof</code> member. The resulting compact detached JWS is carried in the node's <code>proof.jws</code> member.<a href="#section-10-2" class="pilcrow">¶</a></p>
+<p id="section-10-3">The use of JWS provides standard JOSE header handling, including <code>alg</code> and <code>kid</code>, while preserving a JSON wire format that can be validated using typed schemas before cryptographic verification.<a href="#section-10-3" class="pilcrow">¶</a></p>
+<div id="delegation-chain-signing-payload-version-1">
 <section id="section-10.1">
-        <h3 id="name-delegation-chain-signing-in">
-<a href="#section-10.1" class="section-number selfRef">10.1. </a><a href="#name-delegation-chain-signing-in" class="section-name selfRef">Delegation Chain Signing Input Version 1</a>
+        <h3 id="name-delegation-chain-signing-pa">
+<a href="#section-10.1" class="section-number selfRef">10.1. </a><a href="#name-delegation-chain-signing-pa" class="section-name selfRef">Delegation Chain Signing Payload Version 1</a>
         </h3>
-<p id="section-10.1-1">The signature input is a UTF-8 string formed by joining name-value lines with line feed <code>\n</code>.<a href="#section-10.1-1" class="pilcrow">¶</a></p>
+<p id="section-10.1-1">The detached JWS payload is a UTF-8 string formed by joining name-value lines with line feed <code>\n</code>.<a href="#section-10.1-1" class="pilcrow">¶</a></p>
 <p id="section-10.1-2">The first line is:<a href="#section-10.1-2" class="pilcrow">¶</a></p>
 <div class="lang-text sourcecode" id="section-10.1-3">
 <pre>
@@ -2024,11 +2023,9 @@ client_ns
 client_id
 client_name
 resource
-proof.alg
-proof.kid
 </pre><a href="#section-10.1-5" class="pilcrow">¶</a>
 </div>
-<p id="section-10.1-6">The <code>proof.sig</code> member is excluded.<a href="#section-10.1-6" class="pilcrow">¶</a></p>
+<p id="section-10.1-6">The <code>proof</code> member is excluded.<a href="#section-10.1-6" class="pilcrow">¶</a></p>
 <p id="section-10.1-7">Array values are serialized as comma-separated JSON string values in array order.<a href="#section-10.1-7" class="pilcrow">¶</a></p>
 <p id="section-10.1-8">For example:<a href="#section-10.1-8" class="pilcrow">¶</a></p>
 <div class="lang-text sourcecode" id="section-10.1-9">
@@ -2043,12 +2040,17 @@ role=broker
 client_ns=as
 client_id=broker-b-client
 resource=https://api-domain-1.example.com
-proof.alg=ES256
-proof.kid=broker-c-key-1
 </pre><a href="#section-10.1-9" class="pilcrow">¶</a>
 </div>
-<p id="section-10.1-10">The signature is computed over the UTF-8 bytes of this string using the algorithm identified by <code>proof.alg</code>.<a href="#section-10.1-10" class="pilcrow">¶</a></p>
-<p id="section-10.1-11">Future specifications <span class="bcp14">MAY</span> define alternative signing-input schemes. Such specifications <span class="bcp14">MUST</span> identify the scheme unambiguously.<a href="#section-10.1-11" class="pilcrow">¶</a></p>
+<p id="section-10.1-10">This UTF-8 string is used as the detached JWS payload.<a href="#section-10.1-10" class="pilcrow">¶</a></p>
+<p id="section-10.1-11">The compact detached JWS is produced according to <span>[<a href="#RFC7515" class="cite xref">RFC7515</a>]</span> by signing the payload with the algorithm identified by the JWS Protected Header <code>alg</code> value. The JWS Protected Header <span class="bcp14">MUST</span> contain <code>alg</code> and <code>kid</code>.<a href="#section-10.1-11" class="pilcrow">¶</a></p>
+<p id="section-10.1-12">The compact detached JWS serialization stored in <code>proof.jws</code> <span class="bcp14">MUST</span> contain an empty payload segment:<a href="#section-10.1-12" class="pilcrow">¶</a></p>
+<div class="lang-text sourcecode" id="section-10.1-13">
+<pre>
+protected-header || "." || "" || "." || signature
+</pre><a href="#section-10.1-13" class="pilcrow">¶</a>
+</div>
+<p id="section-10.1-14">Future specifications <span class="bcp14">MAY</span> define alternative signing-payload schemes. Such specifications <span class="bcp14">MUST</span> identify the scheme unambiguously.<a href="#section-10.1-14" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2062,8 +2064,9 @@ proof.kid=broker-c-key-1
 <p id="section-11-2">For node <code>i</code>, define:<a href="#section-11-2" class="pilcrow">¶</a></p>
 <div class="lang-text sourcecode" id="section-11-3">
 <pre>
-signature_input_i = deterministic signature input for node i
-event_hash_i = BASE64URL(SHA-256(signature_input_i || "." || proof.sig_i))
+signing_payload_i = deterministic detached JWS payload for node i
+detached_jws_i = proof.jws value for node i
+event_hash_i = BASE64URL(SHA-256(UTF8(signing_payload_i) || "." || ASCII(detached_jws_i)))
 </pre><a href="#section-11-3" class="pilcrow">¶</a>
 </div>
 <p id="section-11-4">The following rules apply:<a href="#section-11-4" class="pilcrow">¶</a></p>
@@ -2074,7 +2077,7 @@ chain[i].p_hash = event_hash(chain[i - 1]) for i &gt; 0
 chain[i].n = chain[i - 1].n + 1
 </pre><a href="#section-11-5" class="pilcrow">¶</a>
 </div>
-<p id="section-11-6">This construction protects against:<a href="#section-11-6" class="pilcrow">¶</a></p>
+<p id="section-11-6">This construction binds both the delegation node payload and the JWS protected header and signature. It protects against:<a href="#section-11-6" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-11-7.1">
           <p id="section-11-7.1.1">reordering nodes,<a href="#section-11-7.1.1" class="pilcrow">¶</a></p>
@@ -2086,10 +2089,13 @@ chain[i].n = chain[i - 1].n + 1
           <p id="section-11-7.3.1">deleting nodes,<a href="#section-11-7.3.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-11-7.4">
-          <p id="section-11-7.4.1">modifying a prior node, and<a href="#section-11-7.4.1" class="pilcrow">¶</a></p>
+          <p id="section-11-7.4.1">modifying a prior node,<a href="#section-11-7.4.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-11-7.5">
-          <p id="section-11-7.5.1">replacing a prior signed node with a different signed node.<a href="#section-11-7.5.1" class="pilcrow">¶</a></p>
+          <p id="section-11-7.5.1">replacing a prior signed node with a different signed node, and<a href="#section-11-7.5.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-11-7.6">
+          <p id="section-11-7.6.1">substituting a different JWS protected header or signature for a prior node.<a href="#section-11-7.6.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
@@ -2238,18 +2244,26 @@ chain[i].n = chain[i - 1].n + 1
         <h3 id="name-step-8-sign-the-node">
 <a href="#section-12.8" class="section-number selfRef">12.8. </a><a href="#name-step-8-sign-the-node" class="section-name selfRef">Step 8 - Sign the Node</a>
         </h3>
-<p id="section-12.8-1">The attester constructs the signature input as described in <a href="#signature-input" class="auto internal xref">Section 10</a>.<a href="#section-12.8-1" class="pilcrow">¶</a></p>
-<p id="section-12.8-2">The attester signs the signature input using the private key corresponding to the public key published in its <code>jwks_uri</code>.<a href="#section-12.8-2" class="pilcrow">¶</a></p>
-<p id="section-12.8-3">The attester places the signature and signing metadata in <code>proof</code>:<a href="#section-12.8-3" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-12.8-4">
+<p id="section-12.8-1">The attester constructs the detached JWS payload as described in <a href="#signature-input" class="auto internal xref">Section 10</a>.<a href="#section-12.8-1" class="pilcrow">¶</a></p>
+<p id="section-12.8-2">The attester creates a JWS Protected Header containing at least:<a href="#section-12.8-2" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-12.8-3">
+<pre>
+{
+  "alg": "ES256",
+  "kid": "attester-key-1"
+}
+</pre><a href="#section-12.8-3" class="pilcrow">¶</a>
+</div>
+<p id="section-12.8-4">The attester signs the detached JWS payload using the private key corresponding to the public key published in its <code>jwks_uri</code>.<a href="#section-12.8-4" class="pilcrow">¶</a></p>
+<p id="section-12.8-5">The attester places the compact detached JWS in <code>proof.jws</code>:<a href="#section-12.8-5" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-12.8-6">
 <pre>
 "proof": {
-  "alg": "ES256",
-  "kid": "attester-key-1",
-  "sig": "base64url-signature"
+  "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImF0dGVzdGVyLWtleS0xIn0..base64url-signature"
 }
-</pre><a href="#section-12.8-4" class="pilcrow">¶</a>
+</pre><a href="#section-12.8-6" class="pilcrow">¶</a>
 </div>
+<p id="section-12.8-7">The JWS payload segment <span class="bcp14">MUST</span> be empty in the compact serialization, because the payload is detached and represented by the delegation node JSON object itself.<a href="#section-12.8-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="step-9-forward-the-chain">
@@ -2291,9 +2305,7 @@ op
 role
 client_ns
 client_id
-proof.alg
-proof.kid
-proof.sig
+proof.jws
 </pre><a href="#section-13.1-5" class="pilcrow">¶</a>
 </div>
 <p id="section-13.1-6">A receiver <span class="bcp14">MAY</span> reject nodes containing unsupported values or unsupported extension members.<a href="#section-13.1-6" class="pilcrow">¶</a></p>
@@ -2356,7 +2368,8 @@ chain[i].n == chain[i - 1].n + 1
 chain[i].p_hash == event_hash(chain[i - 1])
 </pre><a href="#section-13.5-2" class="pilcrow">¶</a>
 </div>
-<p id="section-13.5-3">If any hash comparison fails, the authorization server <span class="bcp14">MUST</span> reject the chain.<a href="#section-13.5-3" class="pilcrow">¶</a></p>
+<p id="section-13.5-3">where <code>event_hash</code> is computed over the previous node's deterministic detached JWS payload and its <code>proof.jws</code> value.<a href="#section-13.5-3" class="pilcrow">¶</a></p>
+<p id="section-13.5-4">If any hash comparison fails, the authorization server <span class="bcp14">MUST</span> reject the chain.<a href="#section-13.5-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="step-6-signature-validation">
@@ -2370,19 +2383,37 @@ chain[i].p_hash == event_hash(chain[i - 1])
             <p id="section-13.6-2.1.1">Reads <code>iss</code>.<a href="#section-13.6-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-13.6-2.2">
-            <p id="section-13.6-2.2.1">Resolves the issuer metadata.<a href="#section-13.6-2.2.1" class="pilcrow">¶</a></p>
+            <p id="section-13.6-2.2.1">Reads <code>proof.jws</code>.<a href="#section-13.6-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-13.6-2.3">
-            <p id="section-13.6-2.3.1">Obtains the issuer's <code>jwks_uri</code>.<a href="#section-13.6-2.3.1" class="pilcrow">¶</a></p>
+            <p id="section-13.6-2.3.1">Parses <code>proof.jws</code> as a compact detached JWS.<a href="#section-13.6-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-13.6-2.4">
-            <p id="section-13.6-2.4.1">Fetches the issuer's JWK Set.<a href="#section-13.6-2.4.1" class="pilcrow">¶</a></p>
+            <p id="section-13.6-2.4.1">Verifies that the compact JWS contains an empty payload segment.<a href="#section-13.6-2.4.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-13.6-2.5">
-            <p id="section-13.6-2.5.1">Selects a key using <code>proof.kid</code>.<a href="#section-13.6-2.5.1" class="pilcrow">¶</a></p>
+            <p id="section-13.6-2.5.1">Decodes the JWS Protected Header.<a href="#section-13.6-2.5.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-13.6-2.6">
-            <p id="section-13.6-2.6.1">Verifies <code>proof.sig</code> over the node's signature input.<a href="#section-13.6-2.6.1" class="pilcrow">¶</a></p>
+            <p id="section-13.6-2.6.1">Verifies that the JWS Protected Header contains <code>alg</code> and <code>kid</code>.<a href="#section-13.6-2.6.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-13.6-2.7">
+            <p id="section-13.6-2.7.1">Resolves the issuer metadata for <code>iss</code>.<a href="#section-13.6-2.7.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-13.6-2.8">
+            <p id="section-13.6-2.8.1">Obtains the issuer's <code>jwks_uri</code>.<a href="#section-13.6-2.8.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-13.6-2.9">
+            <p id="section-13.6-2.9.1">Fetches the issuer's JWK Set.<a href="#section-13.6-2.9.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-13.6-2.10">
+            <p id="section-13.6-2.10.1">Selects a key using the JWS Protected Header <code>kid</code>.<a href="#section-13.6-2.10.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-13.6-2.11">
+            <p id="section-13.6-2.11.1">Constructs the deterministic detached JWS payload for the node by serializing the node excluding the <code>proof</code> member.<a href="#section-13.6-2.11.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-13.6-2.12">
+            <p id="section-13.6-2.12.1">Verifies the detached JWS signature over that payload according to <span>[<a href="#RFC7515" class="cite xref">RFC7515</a>]</span>.<a href="#section-13.6-2.12.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 <p id="section-13.6-3">If a signature cannot be verified, the authorization server <span class="bcp14">MUST</span> reject the chain.<a href="#section-13.6-3" class="pilcrow">¶</a></p>
@@ -2546,7 +2577,7 @@ user-456
         <h3 id="name-tampering">
 <a href="#section-16.1" class="section-number selfRef">16.1. </a><a href="#name-tampering" class="section-name selfRef">Tampering</a>
         </h3>
-<p id="section-16.1-1">The hash chain and per-node signatures are intended to detect node modification, insertion, deletion, and reordering.<a href="#section-16.1-1" class="pilcrow">¶</a></p>
+<p id="section-16.1-1">The hash chain and per-node detached JWS signatures are intended to detect node modification, insertion, deletion, reordering, and signature substitution.<a href="#section-16.1-1" class="pilcrow">¶</a></p>
 <p id="section-16.1-2">A receiver <span class="bcp14">MUST</span> reject a chain if any hash-link or signature check fails.<a href="#section-16.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -2752,9 +2783,7 @@ client-123 -&gt; broker-a -&gt; broker-b -&gt; broker-c -&gt; as-domain-1
       "client_name": "Client 123",
       "resource": ["https://api-domain-1.example.com"],
       "proof": {
-        "alg": "ES256",
-        "kid": "broker-a-key-1",
-        "sig": "sig0"
+        "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImJyb2tlci1hLWtleS0xIn0..sig0"
       }
     },
     {
@@ -2769,9 +2798,7 @@ client-123 -&gt; broker-a -&gt; broker-b -&gt; broker-c -&gt; as-domain-1
       "client_name": "Broker A",
       "resource": ["https://api-domain-1.example.com"],
       "proof": {
-        "alg": "ES256",
-        "kid": "broker-b-key-1",
-        "sig": "sig1"
+        "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImJyb2tlci1iLWtleS0xIn0..sig1"
       }
     },
     {
@@ -2786,9 +2813,7 @@ client-123 -&gt; broker-a -&gt; broker-b -&gt; broker-c -&gt; as-domain-1
       "client_name": "Broker B",
       "resource": ["https://api-domain-1.example.com"],
       "proof": {
-        "alg": "ES256",
-        "kid": "broker-c-key-1",
-        "sig": "sig2"
+        "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImJyb2tlci1jLWtleS0xIn0..sig2"
       }
     }
   ]
@@ -2885,7 +2910,7 @@ client-123 -&gt; broker-a -&gt; broker-b -&gt; broker-c -&gt; as-domain-1
         <h3 id="name-full-authorization-details-o">
 <a href="#appendix-B.1" class="section-number selfRef">B.1. </a><a href="#name-full-authorization-details-o" class="section-name selfRef">Full Authorization Details Object</a>
         </h3>
-<div class="breakable lang-json sourcecode" id="appendix-B.1-1">
+<div class="lang-json sourcecode" id="appendix-B.1-1">
 <pre>
 {
   "type": "oauth_delegation_chain",
@@ -2901,9 +2926,7 @@ client-123 -&gt; broker-a -&gt; broker-b -&gt; broker-c -&gt; as-domain-1
       "client_id": "https://client-123.example.com/oauth-client-metadata.json",
       "resource": ["https://api-domain-1.example.com"],
       "proof": {
-        "alg": "ES256",
-        "kid": "broker-a-key-1",
-        "sig": "sig0"
+        "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImJyb2tlci1hLWtleS0xIn0..sig0"
       }
     },
     {
@@ -2917,9 +2940,7 @@ client-123 -&gt; broker-a -&gt; broker-b -&gt; broker-c -&gt; as-domain-1
       "client_id": "https://broker-a.example.com/client",
       "resource": ["https://api-domain-1.example.com"],
       "proof": {
-        "alg": "ES256",
-        "kid": "broker-b-key-1",
-        "sig": "sig1"
+        "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImJyb2tlci1iLWtleS0xIn0..sig1"
       }
     },
     {
@@ -2933,9 +2954,7 @@ client-123 -&gt; broker-a -&gt; broker-b -&gt; broker-c -&gt; as-domain-1
       "client_id": "https://broker-b.example.com/client",
       "resource": ["https://api-domain-1.example.com"],
       "proof": {
-        "alg": "ES256",
-        "kid": "broker-c-key-1",
-        "sig": "sig2"
+        "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImJyb2tlci1jLWtleS0xIn0..sig2"
       }
     }
   ]
@@ -2996,10 +3015,10 @@ broker-c -&gt; broker-b -&gt; broker-a -&gt; client-123
 </div>
 </section>
 </div>
-<div id="example-signing-input">
+<div id="example-signing-payload">
 <section id="appendix-C">
-      <h2 id="name-example-signing-input">
-<a href="#appendix-C" class="section-number selfRef">Appendix C. </a><a href="#name-example-signing-input" class="section-name selfRef">Example Signing Input</a>
+      <h2 id="name-example-signing-payload">
+<a href="#appendix-C" class="section-number selfRef">Appendix C. </a><a href="#name-example-signing-payload" class="section-name selfRef">Example Signing Payload</a>
       </h2>
 <p id="appendix-C-1">For this node:<a href="#appendix-C-1" class="pilcrow">¶</a></p>
 <div class="lang-json sourcecode" id="appendix-C-2">
@@ -3015,14 +3034,12 @@ broker-c -&gt; broker-b -&gt; broker-a -&gt; client-123
   "client_id": "broker-b-client",
   "resource": ["https://api-domain-1.example.com"],
   "proof": {
-    "alg": "ES256",
-    "kid": "broker-c-key-1",
-    "sig": "sig2"
+    "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImJyb2tlci1jLWtleS0xIn0..sig2"
   }
 }
 </pre><a href="#appendix-C-2" class="pilcrow">¶</a>
 </div>
-<p id="appendix-C-3">the signature input is:<a href="#appendix-C-3" class="pilcrow">¶</a></p>
+<p id="appendix-C-3">the detached JWS payload is:<a href="#appendix-C-3" class="pilcrow">¶</a></p>
 <div class="lang-text sourcecode" id="appendix-C-4">
 <pre>
 oauth-authorization-request-delegation-chain-v1
@@ -3035,11 +3052,18 @@ role=broker
 client_ns=as
 client_id=broker-b-client
 resource=https://api-domain-1.example.com
-proof.alg=ES256
-proof.kid=broker-c-key-1
 </pre><a href="#appendix-C-4" class="pilcrow">¶</a>
 </div>
-<p id="appendix-C-5">The <code>proof.sig</code> value is computed over the UTF-8 bytes of this input.<a href="#appendix-C-5" class="pilcrow">¶</a></p>
+<p id="appendix-C-5">The JWS Protected Header is:<a href="#appendix-C-5" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-C-6">
+<pre>
+{
+  "alg": "ES256",
+  "kid": "broker-c-key-1"
+}
+</pre><a href="#appendix-C-6" class="pilcrow">¶</a>
+</div>
+<p id="appendix-C-7">The <code>proof.jws</code> value is the compact detached JWS over the UTF-8 bytes of the detached JWS payload.<a href="#appendix-C-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="document-history">
@@ -3062,13 +3086,16 @@ proof.kid=broker-c-key-1
           <p id="appendix-D-2.4.1">Defined <code>client_ns</code> values <code>as</code> and <code>cimd</code>.<a href="#appendix-D-2.4.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-2.5">
-          <p id="appendix-D-2.5.1">Defined <code>p_hash</code> hash-chain processing.<a href="#appendix-D-2.5.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-2.5.1">Defined detached JWS proof processing using <code>proof.jws</code>.<a href="#appendix-D-2.5.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-2.6">
-          <p id="appendix-D-2.6.1">Added processing rules for creating, extending, and validating delegation chains.<a href="#appendix-D-2.6.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-2.6.1">Defined <code>p_hash</code> hash-chain processing.<a href="#appendix-D-2.6.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-2.7">
-          <p id="appendix-D-2.7.1">Added brokered OAuth examples with and without CIMD.<a href="#appendix-D-2.7.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-2.7.1">Added processing rules for creating, extending, and validating delegation chains.<a href="#appendix-D-2.7.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-D-2.8">
+          <p id="appendix-D-2.8.1">Added brokered OAuth examples with and without CIMD.<a href="#appendix-D-2.8.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
