@@ -1689,7 +1689,7 @@ resource = https://api-domain-1.example.com
 "oauth_request_delegation_chain"
 </pre><a href="#section-5-2" class="pilcrow">¶</a>
 </div>
-<p id="section-5-3">An authorization request <span class="bcp14">MAY</span> include an authorization detail object of this type:<a href="#section-5-3" class="pilcrow">¶</a></p>
+<p id="section-5-3">A delegated authorization request <span class="bcp14">MAY</span> include an authorization detail object of this type:<a href="#section-5-3" class="pilcrow">¶</a></p>
 <div class="lang-json sourcecode" id="section-5-4">
 <pre>
 {
@@ -2475,8 +2475,9 @@ user-456
       </h2>
 <p id="section-15-1">An authorization server that receives an <code>oauth_request_delegation_chain</code> authorization detail object <span class="bcp14">SHOULD</span> evaluate whether the chain is required for the requested transaction.<a href="#section-15-1" class="pilcrow">¶</a></p>
 <p id="section-15-2">If the authorization server supports this profile but the chain is absent, incomplete, or invalid, the authorization server <span class="bcp14">MAY</span> reject the request according to normal RAR processing rules <span>[<a href="#RFC9396" class="cite xref">RFC9396</a>]</span>.<a href="#section-15-2" class="pilcrow">¶</a></p>
-<p id="section-15-3">An authorization server <span class="bcp14">MAY</span> include the approved <code>authorization_details</code> object in an access token or token introspection response when appropriate. However, this document does not define a token format or require the chain to be propagated to resource servers.<a href="#section-15-3" class="pilcrow">¶</a></p>
-<p id="section-15-4">Where token size or privacy considerations apply, an authorization server <span class="bcp14">SHOULD</span> consider storing the validated chain server-side and exposing only necessary authorization results to resource servers.<a href="#section-15-4" class="pilcrow">¶</a></p>
+<p id="section-15-3">If the authorization server supports this profile and delegates the authorization request to another upstream authorization server, it <span class="bcp14">SHOULD</span> include the <code>oauth_request_delegation_chain</code> authorization detail object and extend the delegation chain with details about the current hop.<a href="#section-15-3" class="pilcrow">¶</a></p>
+<p id="section-15-4">An authorization server <span class="bcp14">MAY</span> include the approved <code>authorization_details</code> object in an access token or token introspection response when appropriate. However, this document does not define a token format or require the chain to be propagated to resource servers.<a href="#section-15-4" class="pilcrow">¶</a></p>
+<p id="section-15-5">Where token size or privacy considerations apply, an authorization server <span class="bcp14">SHOULD</span> consider storing the validated chain server-side and exposing only necessary authorization results to resource servers via token introspection <span>[<a href="#RFC7662" class="cite xref">RFC7662</a>]</span>.<a href="#section-15-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="security-considerations">
@@ -2594,6 +2595,10 @@ user-456
 <dt id="RFC7519">[RFC7519]</dt>
         <dd>
 <span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Bradley, J.</span>, and <span class="refAuthor">N. Sakimura</span>, <span class="refTitle">"JSON Web Token (JWT)"</span>, <span class="seriesInfo">RFC 7519</span>, <span class="seriesInfo">DOI 10.17487/RFC7519</span>, <time datetime="2015-05" class="refDate">May 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7519">https://www.rfc-editor.org/rfc/rfc7519</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7662">[RFC7662]</dt>
+        <dd>
+<span class="refTitle">"*** BROKEN REFERENCE ***"</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8174">[RFC8174]</dt>
         <dd>

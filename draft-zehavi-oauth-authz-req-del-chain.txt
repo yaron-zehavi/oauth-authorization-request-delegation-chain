@@ -531,8 +531,8 @@ Table of Contents
 
    "oauth_request_delegation_chain"
 
-   An authorization request MAY include an authorization detail object
-   of this type:
+   A delegated authorization request MAY include an authorization detail
+   object of this type:
 
    {
      "type": "oauth_request_delegation_chain",
@@ -1153,6 +1153,12 @@ Table of Contents
    absent, incomplete, or invalid, the authorization server MAY reject
    the request according to normal RAR processing rules [RFC9396].
 
+   If the authorization server supports this profile and delegates the
+   authorization request to another upstream authorization server, it
+   SHOULD include the oauth_request_delegation_chain authorization
+   detail object and extend the delegation chain with details about the
+   current hop.
+
    An authorization server MAY include the approved
    authorization_details object in an access token or token
    introspection response when appropriate.  However, this document does
@@ -1161,7 +1167,8 @@ Table of Contents
 
    Where token size or privacy considerations apply, an authorization
    server SHOULD consider storing the validated chain server-side and
-   exposing only necessary authorization results to resource servers.
+   exposing only necessary authorization results to resource servers via
+   token introspection [RFC7662].
 
 16.  Security Considerations
 
@@ -1264,6 +1271,8 @@ Table of Contents
    [RFC7519]  Jones, M., Bradley, J., and N. Sakimura, "JSON Web Token
               (JWT)", RFC 7519, DOI 10.17487/RFC7519, May 2015,
               <https://www.rfc-editor.org/rfc/rfc7519>.
+
+   [RFC7662]  "*** BROKEN REFERENCE ***".
 
    [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
