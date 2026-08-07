@@ -64,7 +64,7 @@ informative:
 
 --- abstract
 
-Brokered OAuth redirect authorization requests involve intermediary authorization servers or brokers between a downstream client and the upstream authorization server that obtains user consent and issues tokens.
+Brokered OAuth redirect authorization requests involve intermediary authorization servers between a downstream client and the upstream authorization server that obtains user consent and issues tokens.
 Such deployments have security risks because the upstream authorization server sees only the immediate OAuth client and is unaware of the downstream client or intermediary brokers obtaining its response.
 
 This document defines an informative OAuth 2.0 profile for carrying a verifiable, signed authorization request delegation chain as a RAR `authorization_details` object {{RFC9396}}. Each node in the chain is a JSON object signed by the attesting authorization server or broker using detached JWS {{RFC7515}}, attesting its validated client, hash-linked to the previous node, allowing the upstream authorization server to validate the exact delegation path before issuing tokens.
@@ -77,10 +77,7 @@ This document does not define new OAuth endpoints, grant types, error codes, tok
 
 OAuth redirect authorization requests increasingly pass through intermediary authorization servers before reaching the authorization server that obtains user consent and issues tokens.
 
-In a brokered redirect authorization flow, a downstream client may initiate an authorization request through one or more brokers. Each broker is both:
-
-* An authorization server or policy decision point for its downstream party, and
-* An OAuth client of the next authorization server or broker in the path.
+In a brokered redirect authorization flow, a downstream client may initiate an authorization request through one or more brokers. Each broker is both an authorization server for its downstream party, and an OAuth client of the next authorization server or broker in the path.
 
 The upstream authorization server that ultimately processes the redirect authorization request may only have a direct relationship with the immediate broker. Without additional information, it may be unable to determine which downstream client initiated the request or which broker path carried the request.
 
@@ -190,7 +187,7 @@ The OAuth Actor Profile addresses token and assertion interoperability. It helps
 
 This document addresses redirect authorization request delegation. It helps an upstream authorization server evaluate a brokered authorization request before token issuance by carrying a signed delegation chain in RAR `authorization_details`.
 
-The two mechanisms can be used together. An authorization server can validate an `oauth_delegation_chain` authorization detail during the redirect authorization request and, after successful authorization, issue a token using the `act` claim profile defined by the OAuth Actor Profile.
+The two mechanisms can be used together. An authorization server can validate an `oauth_request_delegation_chain` authorization detail during the redirect authorization request and, after successful authorization, issue a token using the `act` claim profile defined by the OAuth Actor Profile.
 
 In that combined model:
 
@@ -209,7 +206,7 @@ This document is authorization-request-oriented. It carries the signed chain in 
 
 A deployment could use both mechanisms:
 
-* `oauth_delegation_chain` in the redirect authorization request to support upstream authorization server consent and policy decisions.
+* `oauth_request_delegation_chain` in the redirect authorization request to support upstream authorization server consent and policy decisions.
 * `act` and `actor_proofs` in issued tokens to support downstream resource server enforcement and audit.
 
 # Conventions and Definitions
@@ -309,22 +306,20 @@ The upstream authorization server validates the final node from the broker it di
 This profile defines the following proposed `authorization_details` type:
 
 ~~~ json
-"oauth_delegation_chain"
+"oauth_request_delegation_chain"
 ~~~
 
 An authorization request MAY include an authorization detail object of this type:
 
 ~~~ json
 {
-  "type": "oauth_delegation_chain",
+  "type": "oauth_request_delegation_chain",
   "chain": [
     {
       "iss": "https://broker-c.example.com",
       "aud": "https://as-domain-1.example.com",
       "n": 2,
       "p_hash": "base64url-sha256-of-previous-node",
-      "op": "attest_client",
-      "role": "broker",
       "client_ns": "as",
       "client_id": "broker-b-client",
       "resource": ["https://api-domain-1.example.com"],
@@ -344,7 +339,7 @@ The delegation chain authorization details object has the following members.
 
 | Member | Required | Description |
 |---|---:|---|
-| `type` | Yes | Authorization details type. Value: `oauth_delegation_chain`. |
+| `type` | Yes | Authorization details type. Value: `oauth_request_delegation_chain`. |
 | `chain` | Yes | Ordered JSON array of delegation nodes. |
 
 The `chain` array MUST contain one or more delegation nodes.
@@ -360,8 +355,6 @@ A delegation node is a JSON object with the following members.
 | `aud` | Yes | Intended authorization server or broker-AS audience of this node. This profile uses `aud` only for authorization servers and broker-AS entities, not protected resource APIs. |
 | `n` | Yes | Zero-based chain position. |
 | `p_hash` | Yes | Hash of the previous signed node. `null` for the first node. |
-| `op` | Yes | Operation represented by the node. This profile defines `attest_client`. |
-| `role` | Yes | Role of the attesting entity, such as `as` or `broker`. |
 | `client_ns` | Yes | Client identifier namespace or resolution mode. This profile defines `as` and `cimd`. |
 | `client_id` | Yes | Client attested by this node. |
 | `client_name` | No | Human-readable display name. Not a security identifier. |
@@ -455,7 +448,6 @@ For example:
 {
   "iss": "https://broker-c.example.com",
   "aud": "https://as-domain-1.example.com",
-  "op": "attest_client",
   "client_ns": "as",
   "client_id": "broker-b-client"
 }
@@ -496,8 +488,6 @@ sub
 aud
 n
 p_hash
-op
-role
 client_ns
 client_id
 client_name
@@ -516,8 +506,6 @@ iss=https://broker-c.example.com
 aud=https://as-domain-1.example.com
 n=2
 p_hash=Vh6U...
-op=attest_client
-role=broker
 client_ns=as
 client_id=broker-b-client
 resource=https://api-domain-1.example.com
@@ -632,33 +620,7 @@ The authorization server can use the client metadata document to obtain client m
 
 The mechanism for resolving metadata from `client_ns` and `client_id` is determined by local policy, federation metadata, or client metadata mechanisms.
 
-## Step 4 - Set the Operation
-
-The attester sets:
-
-~~~ json
-"op": "attest_client"
-~~~
-
-## Step 5 - Set the Role
-
-The attester sets `role` to its own role in this hop.
-
-Common values are:
-
-~~~ json
-"as"
-~~~
-
-and:
-
-~~~ json
-"broker"
-~~~
-
-This document does not define a registry for `role` values.
-
-## Step 6 - Set the Position
+## Step 4 - Set the Position
 
 If creating a new chain:
 
@@ -669,7 +631,7 @@ If creating a new chain:
 
 If extending an existing chain, the attester sets `n` to the previous node's `n` plus one and sets `p_hash` to `event_hash(previous_node)`.
 
-## Step 7 - Add Optional Display or Resource Information
+## Step 5 - Add Optional Display or Resource Information
 
 The attester MAY include `client_name` for user interface purposes.
 
@@ -679,7 +641,7 @@ The `client_name` value MUST NOT be used as a security identifier.
 
 Additional claims MAY be added as parties see fit, subject to local policy or future specifications.
 
-## Step 8 - Sign the Node
+## Step 6 - Sign the Node
 
 The attester constructs the detached JWS payload as described in {{signature-input}}.
 
@@ -704,9 +666,9 @@ The attester places the compact detached JWS in `proof.jws`:
 
 The JWS payload segment MUST be empty in the compact serialization, because the payload is detached and represented by the delegation node JSON object itself.
 
-## Step 9 - Forward the Chain
+## Step 7 - Forward the Chain
 
-The attester includes the updated chain in an `authorization_details` object with type `oauth_delegation_chain`.
+The attester includes the updated chain in an `authorization_details` object with type `oauth_request_delegation_chain`.
 
 # Validating a Delegation Chain
 
@@ -717,7 +679,7 @@ An authorization server validating a delegation chain performs the following che
 The authorization server validates that the authorization detail object contains:
 
 ~~~ json
-"type": "oauth_delegation_chain"
+"type": "oauth_request_delegation_chain"
 ~~~
 
 and that `chain` is a non-empty JSON array.
@@ -729,8 +691,6 @@ iss
 aud
 n
 p_hash
-op
-role
 client_ns
 client_id
 proof.jws
@@ -738,17 +698,7 @@ proof.jws
 
 A receiver MAY reject nodes containing unsupported values or unsupported extension members.
 
-## Step 2 - Operation Validation
-
-The authorization server verifies that each node contains:
-
-~~~ json
-"op": "attest_client"
-~~~
-
-If the authorization server does not support the operation, it MUST reject the authorization detail object.
-
-## Step 3 - Client Namespace Validation
+## Step 2 - Client Namespace Validation
 
 The authorization server verifies that each node contains a supported `client_ns` value.
 
@@ -761,7 +711,7 @@ cimd
 
 If the authorization server does not support the `client_ns` value, it MUST reject the authorization detail object.
 
-## Step 4 - Ordering Validation
+## Step 3 - Ordering Validation
 
 The authorization server verifies:
 
@@ -773,7 +723,7 @@ chain[i].n == chain[i - 1].n + 1
 
 for every `i > 0`.
 
-## Step 5 - Hash-Chain Validation
+## Step 4 - Hash-Chain Validation
 
 For every node after the first, the authorization server verifies:
 
@@ -785,7 +735,7 @@ where `event_hash` is computed over the previous node's deterministic detached J
 
 If any hash comparison fails, the authorization server MUST reject the chain.
 
-## Step 6 - Signature Validation
+## Step 5 - Signature Validation
 
 For each node, the authorization server:
 
@@ -804,7 +754,7 @@ For each node, the authorization server:
 
 If a signature cannot be verified, the authorization server MUST reject the chain.
 
-## Step 7 - Audience Validation
+## Step 6 - Audience Validation
 
 The authorization server verifies that the final node is intended for it:
 
@@ -822,13 +772,13 @@ This ensures that the chain path matches the intended authorization server or br
 
 The `aud` value identifies an authorization server or broker-AS, not a protected resource API. Protected resource identifiers are represented using the `resource` member.
 
-## Step 8 - Resource Consistency Validation
+## Step 7 - Resource Consistency Validation
 
 If multiple nodes contain `resource`, the authorization server SHOULD verify that the resource value is consistent across the chain, unless local policy explicitly permits resource transformation.
 
 A protected API endpoint MUST NOT appear in `aud`.
 
-## Step 9 - Relationship Validation
+## Step 8 - Relationship Validation
 
 The authorization server SHOULD verify that adjacent nodes are consistent.
 
@@ -861,7 +811,7 @@ then the authorization server treats broker-c as attesting broker-b-client.
 
 The authorization server then validates the prior node signed by broker-b to determine which client broker-b was carrying.
 
-## Step 10 - Policy Validation
+## Step 9 - Policy Validation
 
 After cryptographic validation, the authorization server applies local policy.
 
@@ -913,7 +863,7 @@ This prevents consent granted to one downstream client from being silently reuse
 
 # Authorization Server Considerations
 
-An authorization server that receives an `oauth_delegation_chain` authorization detail object SHOULD evaluate whether the chain is required for the requested transaction.
+An authorization server that receives an `oauth_request_delegation_chain` authorization detail object SHOULD evaluate whether the chain is required for the requested transaction.
 
 If the authorization server supports this profile but the chain is absent, incomplete, or invalid, the authorization server MAY reject the request according to normal RAR processing rules {{RFC9396}}.
 
@@ -973,7 +923,7 @@ Deployments SHOULD minimize included data and avoid including unnecessary person
 
 This document makes no IANA requests.
 
-A future standards-track version of this document may request registration of the `oauth_delegation_chain` authorization details type.
+A future standards-track version of this document may request registration of the `oauth_request_delegation_chain` authorization details type.
 
 --- back
 
@@ -997,15 +947,13 @@ The `aud` value always identifies the next authorization server or broker-AS. Th
 
 ~~~ json
 {
-  "type": "oauth_delegation_chain",
+  "type": "oauth_request_delegation_chain",
   "chain": [
     {
       "iss": "https://broker-a.example.com",
       "aud": "https://broker-b.example.com",
       "n": 0,
       "p_hash": null,
-      "op": "attest_client",
-      "role": "broker",
       "client_ns": "as",
       "client_id": "client-123",
       "client_name": "Client 123",
@@ -1019,8 +967,6 @@ The `aud` value always identifies the next authorization server or broker-AS. Th
       "aud": "https://broker-c.example.com",
       "n": 1,
       "p_hash": "hash-of-node-0-event",
-      "op": "attest_client",
-      "role": "broker",
       "client_ns": "as",
       "client_id": "broker-a-client",
       "client_name": "Broker A",
@@ -1034,8 +980,6 @@ The `aud` value always identifies the next authorization server or broker-AS. Th
       "aud": "https://as-domain-1.example.com",
       "n": 2,
       "p_hash": "hash-of-node-1-event",
-      "op": "attest_client",
-      "role": "broker",
       "client_ns": "as",
       "client_id": "broker-b-client",
       "client_name": "Broker B",
@@ -1120,15 +1064,13 @@ The `aud` value always identifies the next authorization server or broker-AS. Th
 
 ~~~ json
 {
-  "type": "oauth_delegation_chain",
+  "type": "oauth_request_delegation_chain",
   "chain": [
     {
       "iss": "https://broker-a.example.com",
       "aud": "https://broker-b.example.com",
       "n": 0,
       "p_hash": null,
-      "op": "attest_client",
-      "role": "broker",
       "client_ns": "cimd",
       "client_id": "https://client-123.example.com/oauth-client-metadata.json",
       "resource": ["https://api-domain-1.example.com"],
@@ -1141,8 +1083,6 @@ The `aud` value always identifies the next authorization server or broker-AS. Th
       "aud": "https://broker-c.example.com",
       "n": 1,
       "p_hash": "hash-of-node-0-event",
-      "op": "attest_client",
-      "role": "broker",
       "client_ns": "cimd",
       "client_id": "https://broker-a.example.com/client",
       "resource": ["https://api-domain-1.example.com"],
@@ -1155,8 +1095,6 @@ The `aud` value always identifies the next authorization server or broker-AS. Th
       "aud": "https://as-domain-1.example.com",
       "n": 2,
       "p_hash": "hash-of-node-1-event",
-      "op": "attest_client",
-      "role": "broker",
       "client_ns": "cimd",
       "client_id": "https://broker-b.example.com/client",
       "resource": ["https://api-domain-1.example.com"],
@@ -1223,8 +1161,6 @@ For this node:
   "aud": "https://as-domain-1.example.com",
   "n": 2,
   "p_hash": "hash-of-node-1-event",
-  "op": "attest_client",
-  "role": "broker",
   "client_ns": "as",
   "client_id": "broker-b-client",
   "resource": ["https://api-domain-1.example.com"],
@@ -1242,8 +1178,6 @@ iss=https://broker-c.example.com
 aud=https://as-domain-1.example.com
 n=2
 p_hash=hash-of-node-1-event
-op=attest_client
-role=broker
 client_ns=as
 client_id=broker-b-client
 resource=https://api-domain-1.example.com
@@ -1265,7 +1199,7 @@ The `proof.jws` value is the compact detached JWS over the UTF-8 bytes of the de
 -00
 
 * Initial version.
-* Defined `oauth_delegation_chain` authorization details type.
+* Defined `oauth_request_delegation_chain` authorization details type.
 * Defined signed authorization request delegation nodes using `iss`, `aud`, `client_ns`, and `client_id`.
 * Defined `client_ns` values `as` and `cimd`.
 * Defined detached JWS proof processing using `proof.jws`.
