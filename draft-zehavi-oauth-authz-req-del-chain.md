@@ -38,6 +38,7 @@ normative:
   RFC7517:
   RFC7518:
   RFC7519:
+  RFC7662:
   RFC8259:
   RFC8414:
   RFC9396:
@@ -309,7 +310,7 @@ This profile defines the following proposed `authorization_details` type:
 "oauth_request_delegation_chain"
 ~~~
 
-An authorization request MAY include an authorization detail object of this type:
+A delegated authorization request MAY include an authorization detail object of this type:
 
 ~~~ json
 {
@@ -867,9 +868,11 @@ An authorization server that receives an `oauth_request_delegation_chain` author
 
 If the authorization server supports this profile but the chain is absent, incomplete, or invalid, the authorization server MAY reject the request according to normal RAR processing rules {{RFC9396}}.
 
+If the authorization server supports this profile and delegates the authorization request to another upstream authorization server, it SHOULD include the `oauth_request_delegation_chain` authorization detail object and extend the delegation chain with details about the current hop.
+
 An authorization server MAY include the approved `authorization_details` object in an access token or token introspection response when appropriate. However, this document does not define a token format or require the chain to be propagated to resource servers.
 
-Where token size or privacy considerations apply, an authorization server SHOULD consider storing the validated chain server-side and exposing only necessary authorization results to resource servers.
+Where token size or privacy considerations apply, an authorization server SHOULD consider storing the validated chain server-side and exposing only necessary authorization results to resource servers via token introspection {{RFC7662}}.
 
 # Security Considerations
 
