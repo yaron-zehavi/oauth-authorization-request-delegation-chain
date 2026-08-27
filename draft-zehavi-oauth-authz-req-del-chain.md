@@ -917,8 +917,6 @@ This prevents consent granted to one downstream client from being silently reuse
 
 # Authorization Server Considerations
 
-# Authorization Server Considerations
-
 An authorization server that supports this profile SHOULD advertise support for the `oauth_request_delegation_chain` authorization details type using the `authorization_details_types_supported` authorization server metadata member defined by {{RFC9396}}.
 
 An authorization server that receives an `oauth_request_delegation_chain` authorization detail object SHOULD evaluate whether the chain is required for the requested transaction.
