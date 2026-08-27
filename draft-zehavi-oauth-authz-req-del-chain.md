@@ -38,6 +38,7 @@ normative:
   RFC7517:
   RFC7518:
   RFC7519:
+  RFC7591:
   RFC7662:
   RFC8259:
   RFC8414:
@@ -69,8 +70,6 @@ Brokered OAuth redirect authorization requests involve intermediary authorizatio
 Such deployments have security risks because the upstream authorization server sees only the immediate OAuth client and is unaware of the downstream client or intermediary brokers obtaining its response.
 
 This document defines an informative OAuth 2.0 profile for carrying a verifiable, signed authorization request delegation chain as a RAR `authorization_details` object {{RFC9396}}. Each node in the chain is a JSON object signed by the attesting authorization server or broker using detached JWS {{RFC7515}}, attesting its validated client, hash-linked to the previous node, allowing the upstream authorization server to validate the exact delegation path before issuing tokens.
-
-This document does not define new OAuth endpoints, grant types, error codes, token formats, token response parameters, or token request parameters.
 
 --- middle
 
@@ -302,6 +301,29 @@ Figure: Brokered authorization request using an OAuth Authorization Request Dele
 
 The upstream authorization server validates the final node from the broker it directly knows, then walks the prior signed nodes to identify the terminal client and the full broker path.
 
+# OAuth Broker Client Metadata
+
+This document defines client metadata that allows an authorization server to identify that a registered OAuth client is expected to act as an OAuth broker.
+
+The following client metadata member is defined:
+
+~~~ json
+{
+  "client_roles": ["oauth_broker"]
+}
+~~~
+
+`client_roles`
+: OPTIONAL. JSON array of strings identifying roles the OAuth client is expected to perform when interacting with the authorization server. The value `oauth_broker` indicates that the client may act as an intermediary between the authorization server and one or more downstream clients, applications, agents, relying parties, resource servers, or trust domains.
+
+An authorization server MAY use the `client_roles` metadata value during client registration, dynamic client registration {{RFC7591}}, client metadata document processing, federation metadata processing, or local onboarding.
+
+A client metadata value of `oauth_broker` is a statement about the expected role of the client. It does not by itself establish trust in the client, any downstream client, or any brokered delegation path.
+
+An authorization server MUST NOT rely on self-asserted `client_roles` metadata unless the metadata is obtained through a trusted registration, software statement, federation trust chain, administrative configuration, contractual onboarding process, or other trusted mechanism.
+
+An authorization server MAY also classify a client as an OAuth broker using local policy, even when the `client_roles` metadata member is absent.
+
 # Authorization Details Type
 
 This profile defines the following proposed `authorization_details` type:
@@ -333,6 +355,37 @@ A delegated authorization request MAY include an authorization detail object of 
 ~~~
 
 The `chain` member is a JSON array. JSON arrays are ordered by definition {{RFC8259}}. The explicit `n` value is nevertheless included to make event order unambiguous across storage, transformation, validation, and partial processing.
+
+# Discovering Upstream Support
+
+An OAuth broker that intends to forward a brokered redirect authorization request to an upstream authorization server SHOULD determine whether the upstream authorization server supports the `oauth_request_delegation_chain` authorization details type before sending the authorization request.
+
+The broker SHOULD retrieve the upstream authorization server metadata according to {{RFC8414}}.
+
+If the upstream authorization server metadata contains the `authorization_details_types_supported` metadata member defined by {{RFC9396}}, and that member contains the value `oauth_request_delegation_chain`, the broker SHOULD opt into this mechanism by including an `authorization_details` object of type `oauth_request_delegation_chain` in the authorization request.
+
+For example, an upstream authorization server can advertise support as follows:
+
+~~~ json
+{
+  "issuer": "https://as-domain-1.example.com",
+  "authorization_endpoint": "https://as-domain-1.example.com/authorize",
+  "token_endpoint": "https://as-domain-1.example.com/token",
+  "jwks_uri": "https://as-domain-1.example.com/jwks.json",
+  "authorization_details_types_supported": [
+    "oauth_request_delegation_chain"
+  ]
+}
+~~~
+
+A broker that discovers upstream support and is forwarding a brokered authorization request SHOULD either:
+
+* create a new `oauth_request_delegation_chain` authorization detail object, if no chain is already present; or
+* validate and extend the existing chain, if a chain is already present.
+
+A broker MAY still use this profile with an upstream authorization server when support is established by other means, such as bilateral configuration, federation metadata, contractual onboarding, or local policy.
+
+If a broker is unable to determine whether the upstream authorization server supports this profile, the broker SHOULD apply local policy. Local policy can include forwarding the request without this authorization detail, aborting the transaction, or using an alternative delegation mechanism.
 
 # Delegation Chain Object
 
@@ -864,9 +917,52 @@ This prevents consent granted to one downstream client from being silently reuse
 
 # Authorization Server Considerations
 
+# Authorization Server Considerations
+
+An authorization server that supports this profile SHOULD advertise support for the `oauth_request_delegation_chain` authorization details type using the `authorization_details_types_supported` authorization server metadata member defined by {{RFC9396}}.
+
 An authorization server that receives an `oauth_request_delegation_chain` authorization detail object SHOULD evaluate whether the chain is required for the requested transaction.
 
-If the authorization server supports this profile but the chain is absent, incomplete, or invalid, the authorization server MAY reject the request according to normal RAR processing rules {{RFC9396}}.
+An authorization server MAY require an `oauth_request_delegation_chain` authorization detail object when the immediate OAuth client is known or determined to be an OAuth broker.
+
+For this purpose, an authorization server MAY determine that the immediate client is an OAuth broker based on:
+
+* The client's registered `client_roles` metadata containing `oauth_broker`;
+* Local client configuration;
+* A trusted software statement;
+* Federation metadata or metadata policy;
+* Contractual onboarding;
+* Transaction context; or
+* Any other trusted local policy input.
+
+If the authorization server determines that the immediate client is acting as an OAuth broker, and local policy requires this profile for the request, then the authorization request MUST contain an `authorization_details` object with:
+
+~~~ json
+{
+  "type": "oauth_request_delegation_chain"
+}
+~~~
+
+If the required `oauth_request_delegation_chain` authorization detail object is absent, the authorization server MUST reject the authorization request using normal OAuth 2.0 authorization endpoint error signaling {{RFC6749}}.
+
+If the authorization server can safely redirect to a valid registered redirection URI for the client, the authorization server SHOULD return:
+
+~~~ text
+error=invalid_request
+error_description=authorization_details must contain an object with type "oauth_request_delegation_chain"
+~~~
+
+For example:
+
+~~~ http
+HTTP/1.1 302 Found
+Location: https://client.example/callback?
+  error=invalid_request&
+  error_description=authorization_details%20must%20contain%20an%20object%20with%20type%20%22oauth_request_delegation_chain%22&
+  state=af0ifjsldkj
+~~~
+
+If the `oauth_request_delegation_chain` authorization detail object is present but malformed, semantically invalid, contains an unsupported value, or fails validation, the authorization server SHOULD reject the request according to RAR error processing rules {{RFC9396}}.
 
 If the authorization server supports this profile and delegates the authorization request to another upstream authorization server, it SHOULD include the `oauth_request_delegation_chain` authorization detail object and extend the delegation chain with details about the current hop.
 
@@ -902,6 +998,24 @@ A valid signature proves only that the attester signed the node. It does not imp
 
 Authorization servers MUST apply local trust policy before accepting any attester, broker, namespace, client, or delegation path.
 
+## Trust in Broker Client Metadata
+
+The `client_roles` client metadata member can indicate that a client is expected to act as an OAuth broker.
+
+An authorization server MUST NOT treat self-asserted `client_roles` metadata as proof that the client is trustworthy, authorized to broker authorization requests, or authorized to represent downstream clients.
+
+An authorization server MUST only rely on `client_roles` for security decisions when the metadata was established through a trusted mechanism, such as administrative registration, a trusted dynamic client registration process, a trusted software statement, federation metadata, or other local trust policy.
+
+A malicious client could falsely claim:
+
+~~~ json
+{
+  "client_roles": ["oauth_broker"]
+}
+~~~
+
+Therefore, the presence of `oauth_broker` only identifies the role the client claims or is configured to perform. It does not validate the broker, the downstream client, the delegation path, or the requested authorization.
+
 ## Metadata Resolution
 
 This profile assumes that attesters publish verification keys through authorization server metadata and `jwks_uri`.
@@ -924,9 +1038,27 @@ Deployments SHOULD minimize included data and avoid including unnecessary person
 
 # IANA Considerations
 
-This document makes no IANA requests.
+## OAuth Dynamic Client Registration Metadata Registration
 
-A future standards-track version of this document may request registration of the `oauth_request_delegation_chain` authorization details type.
+This document requests registration of the following value in the IANA "OAuth Dynamic Client Registration Metadata" registry established by {{RFC7591}}.
+
+Client Metadata Name:
+: `client_roles`
+
+Client Metadata Description:
+: JSON array of strings identifying roles the OAuth client is expected to perform when interacting with the authorization server. The value `oauth_broker` indicates that the client may act as an intermediary between the authorization server and one or more downstream clients, applications, agents, relying parties, resource servers, or trust domains.
+
+Change Controller:
+: IETF
+
+Specification Document:
+: This document.
+
+## OAuth Authorization Details Type
+
+This document defines the `oauth_request_delegation_chain` authorization details type.
+
+A future standards-track version of this document may request registration of the `oauth_request_delegation_chain` authorization details type in the applicable IANA registry.
 
 --- back
 
@@ -1198,6 +1330,14 @@ The JWS Protected Header is:
 The `proof.jws` value is the compact detached JWS over the UTF-8 bytes of the detached JWS payload.
 
 # Document History
+
+-01
+
+* Added `client_roles` OAuth Dynamic Client Registration metadata.
+* Defined `oauth_broker` as a client role value.
+* Added broker processing rules for discovering upstream support for the `oauth_request_delegation_chain` authorization details type.
+* Added authorization server processing rules for rejecting brokered authorization requests that omit a required `oauth_request_delegation_chain` authorization detail.
+* Added IANA request for the `client_roles` client metadata name.
 
 -00
 
