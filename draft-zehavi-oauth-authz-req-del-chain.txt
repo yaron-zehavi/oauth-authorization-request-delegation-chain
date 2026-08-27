@@ -120,22 +120,21 @@ Table of Contents
      15.9.  Step 9 - Policy Validation
    16. Consent Binding
    17. Authorization Server Considerations
-   18. Authorization Server Considerations
-   19. Security Considerations
-     19.1.  Tampering
-     19.2.  Replay
-     19.3.  Display Names
-     19.4.  Trust in Attesters
-     19.5.  Trust in Broker Client Metadata
-     19.6.  Metadata Resolution
-     19.7.  Immediate Client Authentication
-     19.8.  Privacy
-   20. IANA Considerations
-     20.1.  OAuth Dynamic Client Registration Metadata Registration
-     20.2.  OAuth Authorization Details Type
-   21. References
-     21.1.  Normative References
-     21.2.  Informative References
+   18. Security Considerations
+     18.1.  Tampering
+     18.2.  Replay
+     18.3.  Display Names
+     18.4.  Trust in Attesters
+     18.5.  Trust in Broker Client Metadata
+     18.6.  Metadata Resolution
+     18.7.  Immediate Client Authentication
+     18.8.  Privacy
+   19. IANA Considerations
+     19.1.  OAuth Dynamic Client Registration Metadata Registration
+     19.2.  OAuth Authorization Details Type
+   20. References
+     20.1.  Normative References
+     20.2.  Informative References
    Appendix A.  Brokered OAuth Example Without CIMD
      A.1.  Full Authorization Details Object
      A.2.  Interpretation
@@ -1237,8 +1236,6 @@ Table of Contents
 
 17.  Authorization Server Considerations
 
-18.  Authorization Server Considerations
-
    An authorization server that supports this profile SHOULD advertise
    support for the oauth_request_delegation_chain authorization details
    type using the authorization_details_types_supported authorization
@@ -1321,9 +1318,9 @@ Table of Contents
    exposing only necessary authorization results to resource servers via
    token introspection [RFC7662].
 
-19.  Security Considerations
+18.  Security Considerations
 
-19.1.  Tampering
+18.1.  Tampering
 
    The hash chain and per-node detached JWS signatures are intended to
    detect node modification, insertion, deletion, reordering, and
@@ -1332,7 +1329,7 @@ Table of Contents
    A receiver MUST reject a chain if any hash-link or signature check
    fails.
 
-19.2.  Replay
+18.2.  Replay
 
    This profile does not define expiration, nonce, or replay-cache
    claims in the base structure.
@@ -1341,7 +1338,7 @@ Table of Contents
    such as timestamps, nonces, transaction identifiers, or request
    references, as deployment-specific extensions.
 
-19.3.  Display Names
+18.3.  Display Names
 
    client_name is intended only for display.
 
@@ -1351,7 +1348,7 @@ Table of Contents
    The stable security identifier depends on client_ns and applicable
    issuer context as described in this document.
 
-19.4.  Trust in Attesters
+18.4.  Trust in Attesters
 
    A valid signature proves only that the attester signed the node.  It
    does not imply that the attester is trusted for the requested
@@ -1360,7 +1357,7 @@ Table of Contents
    Authorization servers MUST apply local trust policy before accepting
    any attester, broker, namespace, client, or delegation path.
 
-19.5.  Trust in Broker Client Metadata
+18.5.  Trust in Broker Client Metadata
 
    The client_roles client metadata member can indicate that a client is
    expected to act as an OAuth broker.
@@ -1387,7 +1384,7 @@ Table of Contents
    broker, the downstream client, the delegation path, or the requested
    authorization.
 
-19.6.  Metadata Resolution
+18.6.  Metadata Resolution
 
    This profile assumes that attesters publish verification keys through
    authorization server metadata and jwks_uri.
@@ -1395,7 +1392,7 @@ Table of Contents
    If metadata cannot be resolved, or if the key identified by kid
    cannot be found, the receiver MUST reject the affected node.
 
-19.7.  Immediate Client Authentication
+18.7.  Immediate Client Authentication
 
    The delegation chain does not replace OAuth client authentication.
 
@@ -1405,7 +1402,7 @@ Table of Contents
    The authorization server SHOULD verify that the authenticated
    immediate client is consistent with the final delegation node.
 
-19.8.  Privacy
+18.8.  Privacy
 
    A delegation chain can reveal intermediaries, downstream clients,
    resources, and possibly subjects.
@@ -1413,9 +1410,9 @@ Table of Contents
    Deployments SHOULD minimize included data and avoid including
    unnecessary personally identifiable information.
 
-20.  IANA Considerations
+19.  IANA Considerations
 
-20.1.  OAuth Dynamic Client Registration Metadata Registration
+19.1.  OAuth Dynamic Client Registration Metadata Registration
 
    This document requests registration of the following value in the
    IANA "OAuth Dynamic Client Registration Metadata" registry
@@ -1434,7 +1431,7 @@ Table of Contents
 
    Specification Document:  This document.
 
-20.2.  OAuth Authorization Details Type
+19.2.  OAuth Authorization Details Type
 
    This document defines the oauth_request_delegation_chain
    authorization details type.
@@ -1443,9 +1440,9 @@ Table of Contents
    registration of the oauth_request_delegation_chain authorization
    details type in the applicable IANA registry.
 
-21.  References
+20.  References
 
-21.1.  Normative References
+20.1.  Normative References
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -1500,7 +1497,7 @@ Table of Contents
               DOI 10.17487/RFC9396, May 2023,
               <https://www.rfc-editor.org/rfc/rfc9396>.
 
-21.2.  Informative References
+20.2.  Informative References
 
    [I-D.ietf-oauth-client-id-metadata-document]
               "OAuth Client ID Metadata Document", n.d.,
