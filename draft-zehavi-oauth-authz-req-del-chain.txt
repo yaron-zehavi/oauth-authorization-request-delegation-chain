@@ -4,8 +4,8 @@
 
 Web Authorization Protocol                                     Y. Zehavi
 Internet-Draft                             Raiffeisen Bank International
-Intended status: Informational                            27 August 2026
-Expires: 28 February 2027
+Intended status: Informational                          8 September 2026
+Expires: 12 March 2027
 
 
               OAuth Authorization Request Delegation Chain
@@ -63,7 +63,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 February 2027.
+   This Internet-Draft will expire on 12 March 2027.
 
 Copyright Notice
 
@@ -96,7 +96,7 @@ Table of Contents
    8.  Delegation Chain Object
    9.  Delegation Node
    10. Proof Object
-   11. Operation: attest_client
+   11. Attesting a Client
    12. Signature Input
      12.1.  Delegation Chain Signing Payload Version 1
    13. Hash Chain
@@ -111,24 +111,24 @@ Table of Contents
    15. Validating a Delegation Chain
      15.1.  Step 1 - Schema Validation
      15.2.  Step 2 - Client Namespace Validation
-     15.3.  Step 3 - Ordering Validation
-     15.4.  Step 4 - Hash-Chain Validation
-     15.5.  Step 5 - Signature Validation
-     15.6.  Step 6 - Audience Validation
-     15.7.  Step 7 - Resource Consistency Validation
-     15.8.  Step 8 - Relationship Validation
-     15.9.  Step 9 - Policy Validation
+     15.3.  Step 3 - Terminal Node Preflight
+     15.4.  Step 4 - Signature Validation
+     15.5.  Step 5 - Backward Chain Validation
+     15.6.  Step 6 - Resource Consistency Validation
+     15.7.  Step 7 - Delegation Relationship Validation
+     15.8.  Step 8 - Policy Validation
    16. Consent Binding
    17. Authorization Server Considerations
    18. Security Considerations
-     18.1.  Tampering
-     18.2.  Replay
-     18.3.  Display Names
-     18.4.  Trust in Attesters
-     18.5.  Trust in Broker Client Metadata
-     18.6.  Metadata Resolution
-     18.7.  Immediate Client Authentication
-     18.8.  Privacy
+     18.1.  Chain Integrity
+     18.2.  Truncation and Re-origination
+     18.3.  Replay
+     18.4.  Display Names
+     18.5.  Trust in Attesters
+     18.6.  Trust in Broker Client Metadata
+     18.7.  Metadata Resolution
+     18.8.  Immediate Client Authentication
+     18.9.  Privacy
    19. IANA Considerations
      19.1.  OAuth Dynamic Client Registration Metadata Registration
      19.2.  OAuth Authorization Details Type
@@ -481,7 +481,7 @@ Table of Contents
    Hop 3: broker-c -> as-domain-1
           broker-c attests broker-b-client
 
-   The protected resource remains constant across the chain:
+   The requested protected resource remains constant across the chain:
 
    resource = https://api-domain-1.example.com
 
@@ -779,13 +779,9 @@ Table of Contents
    broker is expected to publish authorization server metadata [RFC8414]
    and a jwks_uri.
 
-11.  Operation: attest_client
+11.  Attesting a Client
 
-   This profile defines one operation value:
-
-   "attest_client"
-
-   The operation means:
+   Attesting a client means:
 
    The entity identified by iss attests to the entity identified by aud
    that the client identified by client_ns and client_id is the delegated
@@ -802,8 +798,8 @@ Table of Contents
 
    means:
 
-   broker-c attests to as-domain-1 that broker-b-client is the delegated
-   client for this hop.
+   broker-c attests to as-domain-1 that broker-b-client
+   is the delegated client for this hop.
 
    The upstream authorization server can then validate prior nodes to
    discover the terminal downstream client.
@@ -1031,6 +1027,17 @@ Table of Contents
    An authorization server validating a delegation chain performs the
    following checks.
 
+   Validation is anchored at the receiving authorization server and
+   proceeds from the final node of the chain toward the first node.
+   This reflects the trust model: the final node is the node addressed
+   to the receiving authorization server, and each valid signed node
+   commits to the previous node through p_hash.
+
+   A node's signature is over the node's deterministic detached JWS
+   payload, including its p_hash value and excluding the proof member.
+   Therefore, a valid signature on node i commits to node i - 1 when
+   p_hash is valid.
+
 15.1.  Step 1 - Schema Validation
 
    The authorization server validates that the authorization detail
@@ -1066,29 +1073,57 @@ Table of Contents
    If the authorization server does not support the client_ns value, it
    MUST reject the authorization detail object.
 
-15.3.  Step 3 - Ordering Validation
+15.3.  Step 3 - Terminal Node Preflight
 
-   The authorization server verifies:
+   Let last be the index of the final node in the chain.
 
-   chain[0].n == 0
-   chain[0].p_hash == null
-   chain[i].n == chain[i - 1].n + 1
+   Before performing signature validation, the authorization server MAY
+   perform fail-fast checks on the final node.
 
-   for every i > 0.
+   The authorization server verifies that the final node is intended for
+   it:
 
-15.4.  Step 4 - Hash-Chain Validation
+   chain[last].aud == receiving_authorization_server_issuer
 
-   For every node after the first, the authorization server verifies:
+   If the final node's aud value does not identify the receiving
+   authorization server, the authorization server MUST reject the chain.
 
-   chain[i].p_hash == event_hash(chain[i - 1])
+   The authorization server also verifies that the final node is
+   plausibly bound to the OAuth client submitting the authorization
+   request.
 
-   where event_hash is computed over the previous node's deterministic
-   detached JWS payload and its proof.jws value.
+   The exact binding is deployment-specific, but the receiving
+   authorization server MUST be able to establish that:
 
-   If any hash comparison fails, the authorization server MUST reject
-   the chain.
+   chain[last].iss
 
-15.5.  Step 5 - Signature Validation
+   identifies, or is authorized to speak for, the authenticated OAuth
+   client submitting the request.
+
+   For example, if the request is submitted by an authenticated broker
+   client, the authorization server can verify that the registered
+   metadata for that OAuth client identifies:
+
+   chain[last].iss
+
+   as the broker authorization server or broker issuer for that client.
+
+   If the authorization server cannot bind the final node's iss to the
+   OAuth client submitting the request, it MUST reject the chain.
+
+   The checks in this step are fail-fast checks.  Until the final node's
+   signature has been verified, the authorization server MUST treat the
+   final node's iss, aud, and other members as unauthenticated input.  A
+   successful preflight check does not by itself authenticate the node
+   or the chain.
+
+   The aud value identifies an authorization server or broker-AS, not a
+   protected resource API.  Protected resource identifiers are
+   represented using the resource member.
+
+   A protected API endpoint MUST NOT appear in aud.
+
+15.4.  Step 4 - Signature Validation
 
    For each node, the authorization server:
 
@@ -1121,45 +1156,73 @@ Table of Contents
    If a signature cannot be verified, the authorization server MUST
    reject the chain.
 
-15.6.  Step 6 - Audience Validation
+   After signature validation succeeds, the authorization server treats
+   the signed members of each node as authenticated statements by that
+   node's iss.
 
-   The authorization server verifies that the final node is intended for
-   it:
+   In particular, the terminal preflight checks in Section 15.3 are then
+   authenticated because the final node's signature covers the same iss,
+   aud, client_ns, client_id, p_hash, and other signed members.
 
-   chain[last].aud == receiving_authorization_server_issuer
+15.5.  Step 5 - Backward Chain Validation
 
-   For intermediate nodes, the authorization server SHOULD verify:
+   The authorization server validates the chain from the final node
+   toward the first node.
 
-   chain[i].aud == chain[i + 1].iss
+   For every i from last down to 1, the authorization server verifies:
 
-   This ensures that the chain path matches the intended authorization
-   server or broker-AS path.
+   chain[i].p_hash == event_hash(chain[i - 1])
+   chain[i - 1].aud == chain[i].iss
+   chain[i].n == chain[i - 1].n + 1
 
-   The aud value identifies an authorization server or broker-AS, not a
-   protected resource API.  Protected resource identifiers are
-   represented using the resource member.
+   where event_hash is computed over the previous node's deterministic
+   detached JWS payload and its proof.jws value.
 
-15.7.  Step 7 - Resource Consistency Validation
+   If any hash comparison fails, the authorization server MUST reject
+   the chain.
+
+   If any audience-continuity check fails, the authorization server MUST
+   reject the chain.
+
+   If any sequence-number check fails, the authorization server MUST
+   reject the chain.
+
+   The authorization server then verifies the first node:
+
+   chain[0].n == 0
+   chain[0].p_hash == null
+
+   If either check fails, the authorization server MUST reject the
+   chain.
+
+   The audience-continuity check ensures that every hop intentionally
+   delegated to the next hop in the chain:
+
+   chain[i - 1].aud == chain[i].iss
+
+   Thus, for a chain:
+
+   node[0] -> node[1] -> node[2]
+
+   the following MUST hold:
+
+   node[0].aud == node[1].iss
+   node[1].aud == node[2].iss
+
+15.6.  Step 6 - Resource Consistency Validation
 
    If multiple nodes contain resource, the authorization server SHOULD
    verify that the resource value is consistent across the chain, unless
    local policy explicitly permits resource transformation.
 
-   A protected API endpoint MUST NOT appear in aud.
+   If local policy permits resource transformation, the authorization
+   server SHOULD verify that each transformation is allowed for the
+   issuer performing the transformation.
 
-15.8.  Step 8 - Relationship Validation
+15.7.  Step 7 - Delegation Relationship Validation
 
    The authorization server SHOULD verify that adjacent nodes are
-   consistent.
-
-   For a chain:
-
-   node[0] -> node[1] -> node[2]
-
-   the following should hold:
-
-   node[0].aud == node[1].iss
-   node[1].aud == node[2].iss
+   semantically consistent.
 
    The final node identifies the client that the immediate trusted
    broker is attesting.  Prior nodes reveal what that client was itself
@@ -1173,35 +1236,69 @@ Table of Contents
      "client_id": "broker-b-client"
    }
 
-   then the authorization server treats broker-c as attesting broker-
-   b-client.
+   then the authorization server treats https://broker-c.example.com as
+   attesting broker-b-client.
 
    The authorization server then validates the prior node signed by
    broker-b to determine which client broker-b was carrying.
 
-15.9.  Step 9 - Policy Validation
+   The authorization server MAY reject the chain if the attested client
+   relationship is inconsistent with registration metadata, federation
+   metadata, or local policy.
+
+15.8.  Step 8 - Policy Validation
 
    After cryptographic validation, the authorization server applies
    local policy.
 
+   Cryptographic validation proves the integrity of the visible chain.
+   It does not prove that no upstream delegation context existed before
+   chain[0].
+
+   In particular, a broker can originate a new chain beginning with
+   itself as chain[0].  Such re-origination can produce a
+   cryptographically valid chain.  Whether that chain is acceptable is a
+   local policy decision for the receiving authorization server.
+
    Policy decisions can consider:
 
-   *  the immediate client authenticated to the authorization server,
+   *  the OAuth client authenticated to the authorization server,
 
-   *  the final node's iss,
+   *  the final node's iss, whether it is allowed for the authenticated
+      OAuth client,
+
+   *  the first node's iss, whether it is allowed to appear as a first-
+      node issuer,
 
    *  the full set of brokers in the chain,
+
+   *  whether each broker is allowed to appear in its position in the
+      chain,
 
    *  the terminal client identified by the earliest client attestation,
 
    *  the resources identified by resource,
 
-   *  the user subject identified by sub, if present, and
+   *  the user subject identified by sub, if present,
 
-   *  the full delegation chain hash.
+   *  the full delegation chain hash, and
+
+   *  deployment-specific expectations about allowed direct and indirect
+      paths.
+
+   The final node's iss is used to validate the relationship between the
+   authenticated OAuth client and the broker-AS or AS that produced the
+   final delegation-chain node.
+
+   The first node's iss is used to evaluate whether the visible chain is
+   allowed to begin with that issuer.  This is the policy check that
+   addresses head-truncation or re-origination.  Cryptographic
+   validation cannot prove that no upstream nodes existed before
+   chain[0].
 
    The authorization server MAY reject the request if any broker,
-   client, namespace, resource, or path is not allowed.
+   client, namespace, resource, subject, first-node issuer, or path is
+   not allowed.
 
 16.  Consent Binding
 
@@ -1320,44 +1417,71 @@ Table of Contents
 
 18.  Security Considerations
 
-18.1.  Tampering
+18.1.  Chain Integrity
 
-   The hash chain and per-node detached JWS signatures are intended to
-   detect node modification, insertion, deletion, reordering, and
-   signature substitution.
+   The hash chain, per-node detached JWS signatures, sequence numbers,
+   and audience continuity checks are intended to detect modification,
+   insertion, deletion, reordering, and signature substitution within
+   the visible delegation chain.
 
-   A receiver MUST reject a chain if any hash-link or signature check
-   fails.
+   A receiver MUST reject a chain if any required validation check
+   described in Section 15 fails.
 
-18.2.  Replay
+   A valid signature proves only that the identified issuer signed the
+   node.  It does not imply that the issuer is trusted for the requested
+   delegation.
+
+18.2.  Truncation and Re-origination
+
+   Truncation has three relevant cases.
+
+   Tail truncation is detected by the terminal audience check: a
+   shortened chain will not end in a node whose aud identifies the
+   receiving authorization server.
+
+   Middle removal is detected by the hash-chain and audience-continuity
+   checks: removing an intermediate node breaks the successor's p_hash
+   and the adjacent issuer/audience relationship.
+
+   Head truncation, or re-origination, is different.  A broker can
+   create a fresh chain beginning with itself as chain[0].
+   Cryptographic validation proves the integrity of the visible chain,
+   but cannot prove that no upstream context existed before chain[0].
+
+   Authorization servers MUST handle re-origination through local
+   policy, including whether chain[0].iss is allowed to appear as the
+   first visible issuer for the requested client, resource, and
+   deployment context.
+
+18.3.  Replay
 
    This profile does not define expiration, nonce, or replay-cache
    claims in the base structure.
 
-   Deployments that require replay protection MAY add additional claims,
-   such as timestamps, nonces, transaction identifiers, or request
-   references, as deployment-specific extensions.
+   Deployments that require replay protection MAY add such claims as
+   deployment-specific extensions and validate them according to local
+   policy.
 
-18.3.  Display Names
+18.4.  Display Names
 
    client_name is intended only for display.
 
    Authorization servers MUST NOT use client_name as a security
    identifier.
 
-   The stable security identifier depends on client_ns and applicable
-   issuer context as described in this document.
+   The stable security identifier depends on client_ns, client_id, and
+   the applicable issuer or namespace context.
 
-18.4.  Trust in Attesters
+18.5.  Trust in Attesters
 
-   A valid signature proves only that the attester signed the node.  It
-   does not imply that the attester is trusted for the requested
-   delegation.
+   A valid chain establishes integrity and provenance of the visible
+   attestations.  It does not establish that the attesters, clients,
+   resources, subjects, or path are acceptable.
 
    Authorization servers MUST apply local trust policy before accepting
-   any attester, broker, namespace, client, or delegation path.
+   a delegation chain.
 
-18.5.  Trust in Broker Client Metadata
+18.6.  Trust in Broker Client Metadata
 
    The client_roles client metadata member can indicate that a client is
    expected to act as an OAuth broker.
@@ -1367,42 +1491,32 @@ Table of Contents
    broker authorization requests, or authorized to represent downstream
    clients.
 
-   An authorization server MUST only rely on client_roles for security
-   decisions when the metadata was established through a trusted
-   mechanism, such as administrative registration, a trusted dynamic
-   client registration process, a trusted software statement, federation
-   metadata, or other local trust policy.
+   An authorization server MUST rely on client_roles for security
+   decisions only when the metadata was established through a trusted
+   mechanism, such as administrative registration, trusted dynamic
+   client registration, a trusted software statement, federation
+   metadata, or local trust policy.
 
-   A malicious client could falsely claim:
-
-   {
-     "client_roles": ["oauth_broker"]
-   }
-
-   Therefore, the presence of oauth_broker only identifies the role the
-   client claims or is configured to perform.  It does not validate the
-   broker, the downstream client, the delegation path, or the requested
-   authorization.
-
-18.6.  Metadata Resolution
+18.7.  Metadata Resolution
 
    This profile assumes that attesters publish verification keys through
    authorization server metadata and jwks_uri.
 
-   If metadata cannot be resolved, or if the key identified by kid
-   cannot be found, the receiver MUST reject the affected node.
+   If metadata cannot be resolved, is not trusted, or does not contain
+   the key identified by kid, the receiver MUST reject the affected
+   node.
 
-18.7.  Immediate Client Authentication
+18.8.  Immediate Client Authentication
 
    The delegation chain does not replace OAuth client authentication.
 
    An authorization server MUST still authenticate the immediate OAuth
    client according to its normal OAuth processing rules.
 
-   The authorization server SHOULD verify that the authenticated
-   immediate client is consistent with the final delegation node.
+   The authorization server MUST verify that the authenticated immediate
+   client is consistent with the final delegation node.
 
-18.8.  Privacy
+18.9.  Privacy
 
    A delegation chain can reveal intermediaries, downstream clients,
    resources, and possibly subjects.

@@ -28,11 +28,11 @@ Such deployments have security risks because the upstream authorization server s
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.11.3
+    platformdirs 4.11.7
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.8.2
+    wcwidth 0.8.3
 -->
 <link href="draft-zehavi-oauth-authz-req-del-chain.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1048,11 +1048,11 @@ svg {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">OAuth Authz Request Delegation Chain</td>
-<td class="right">August 2026</td>
+<td class="right">September 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Zehavi</td>
-<td class="center">Expires 28 February 2027</td>
+<td class="center">Expires 12 March 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1065,12 +1065,12 @@ svg {
 <dd class="internet-draft">draft-zehavi-oauth-authz-req-del-chain-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-08-27" class="published">27 August 2026</time>
+<time datetime="2026-09-08" class="published">8 September 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-02-28">28 February 2027</time></dd>
+<dd class="expires"><time datetime="2027-03-12">12 March 2027</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1122,7 +1122,7 @@ Such deployments have security risks because the upstream authorization server s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 28 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 12 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1199,7 +1199,7 @@ Such deployments have security risks because the upstream authorization server s
             <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-proof-object" class="internal xref">Proof Object</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
-            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-operation-attest_client" class="internal xref">Operation: <code>attest_client</code></a></p>
+            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-attesting-a-client" class="internal xref">Attesting a Client</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
             <p id="section-toc.1-1.12.1"><a href="#section-12" class="auto internal xref">12</a>. <a href="#name-signature-input" class="internal xref">Signature Input</a></p>
@@ -1248,25 +1248,22 @@ Such deployments have security risks because the upstream authorization server s
                 <p id="section-toc.1-1.15.2.2.1"><a href="#section-15.2" class="auto internal xref">15.2</a>.  <a href="#name-step-2-client-namespace-val" class="internal xref">Step 2 - Client Namespace Validation</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.3">
-                <p id="section-toc.1-1.15.2.3.1"><a href="#section-15.3" class="auto internal xref">15.3</a>.  <a href="#name-step-3-ordering-validation" class="internal xref">Step 3 - Ordering Validation</a></p>
+                <p id="section-toc.1-1.15.2.3.1"><a href="#section-15.3" class="auto internal xref">15.3</a>.  <a href="#name-step-3-terminal-node-prefli" class="internal xref">Step 3 - Terminal Node Preflight</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.4">
-                <p id="section-toc.1-1.15.2.4.1"><a href="#section-15.4" class="auto internal xref">15.4</a>.  <a href="#name-step-4-hash-chain-validatio" class="internal xref">Step 4 - Hash-Chain Validation</a></p>
+                <p id="section-toc.1-1.15.2.4.1"><a href="#section-15.4" class="auto internal xref">15.4</a>.  <a href="#name-step-4-signature-validation" class="internal xref">Step 4 - Signature Validation</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.5">
-                <p id="section-toc.1-1.15.2.5.1"><a href="#section-15.5" class="auto internal xref">15.5</a>.  <a href="#name-step-5-signature-validation" class="internal xref">Step 5 - Signature Validation</a></p>
+                <p id="section-toc.1-1.15.2.5.1"><a href="#section-15.5" class="auto internal xref">15.5</a>.  <a href="#name-step-5-backward-chain-valid" class="internal xref">Step 5 - Backward Chain Validation</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.6">
-                <p id="section-toc.1-1.15.2.6.1"><a href="#section-15.6" class="auto internal xref">15.6</a>.  <a href="#name-step-6-audience-validation" class="internal xref">Step 6 - Audience Validation</a></p>
+                <p id="section-toc.1-1.15.2.6.1"><a href="#section-15.6" class="auto internal xref">15.6</a>.  <a href="#name-step-6-resource-consistency" class="internal xref">Step 6 - Resource Consistency Validation</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.7">
-                <p id="section-toc.1-1.15.2.7.1"><a href="#section-15.7" class="auto internal xref">15.7</a>.  <a href="#name-step-7-resource-consistency" class="internal xref">Step 7 - Resource Consistency Validation</a></p>
+                <p id="section-toc.1-1.15.2.7.1"><a href="#section-15.7" class="auto internal xref">15.7</a>.  <a href="#name-step-7-delegation-relations" class="internal xref">Step 7 - Delegation Relationship Validation</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.8">
-                <p id="section-toc.1-1.15.2.8.1"><a href="#section-15.8" class="auto internal xref">15.8</a>.  <a href="#name-step-8-relationship-validat" class="internal xref">Step 8 - Relationship Validation</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.9">
-                <p id="section-toc.1-1.15.2.9.1"><a href="#section-15.9" class="auto internal xref">15.9</a>.  <a href="#name-step-9-policy-validation" class="internal xref">Step 9 - Policy Validation</a></p>
+                <p id="section-toc.1-1.15.2.8.1"><a href="#section-15.8" class="auto internal xref">15.8</a>.  <a href="#name-step-8-policy-validation" class="internal xref">Step 8 - Policy Validation</a></p>
 </li>
             </ul>
 </li>
@@ -1280,28 +1277,31 @@ Such deployments have security risks because the upstream authorization server s
             <p id="section-toc.1-1.18.1"><a href="#section-18" class="auto internal xref">18</a>. <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.18.2.1">
-                <p id="section-toc.1-1.18.2.1.1"><a href="#section-18.1" class="auto internal xref">18.1</a>.  <a href="#name-tampering" class="internal xref">Tampering</a></p>
+                <p id="section-toc.1-1.18.2.1.1"><a href="#section-18.1" class="auto internal xref">18.1</a>.  <a href="#name-chain-integrity" class="internal xref">Chain Integrity</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.18.2.2">
-                <p id="section-toc.1-1.18.2.2.1"><a href="#section-18.2" class="auto internal xref">18.2</a>.  <a href="#name-replay" class="internal xref">Replay</a></p>
+                <p id="section-toc.1-1.18.2.2.1"><a href="#section-18.2" class="auto internal xref">18.2</a>.  <a href="#name-truncation-and-re-originati" class="internal xref">Truncation and Re-origination</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.18.2.3">
-                <p id="section-toc.1-1.18.2.3.1"><a href="#section-18.3" class="auto internal xref">18.3</a>.  <a href="#name-display-names" class="internal xref">Display Names</a></p>
+                <p id="section-toc.1-1.18.2.3.1"><a href="#section-18.3" class="auto internal xref">18.3</a>.  <a href="#name-replay" class="internal xref">Replay</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.18.2.4">
-                <p id="section-toc.1-1.18.2.4.1"><a href="#section-18.4" class="auto internal xref">18.4</a>.  <a href="#name-trust-in-attesters" class="internal xref">Trust in Attesters</a></p>
+                <p id="section-toc.1-1.18.2.4.1"><a href="#section-18.4" class="auto internal xref">18.4</a>.  <a href="#name-display-names" class="internal xref">Display Names</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.18.2.5">
-                <p id="section-toc.1-1.18.2.5.1"><a href="#section-18.5" class="auto internal xref">18.5</a>.  <a href="#name-trust-in-broker-client-meta" class="internal xref">Trust in Broker Client Metadata</a></p>
+                <p id="section-toc.1-1.18.2.5.1"><a href="#section-18.5" class="auto internal xref">18.5</a>.  <a href="#name-trust-in-attesters" class="internal xref">Trust in Attesters</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.18.2.6">
-                <p id="section-toc.1-1.18.2.6.1"><a href="#section-18.6" class="auto internal xref">18.6</a>.  <a href="#name-metadata-resolution" class="internal xref">Metadata Resolution</a></p>
+                <p id="section-toc.1-1.18.2.6.1"><a href="#section-18.6" class="auto internal xref">18.6</a>.  <a href="#name-trust-in-broker-client-meta" class="internal xref">Trust in Broker Client Metadata</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.18.2.7">
-                <p id="section-toc.1-1.18.2.7.1"><a href="#section-18.7" class="auto internal xref">18.7</a>.  <a href="#name-immediate-client-authentica" class="internal xref">Immediate Client Authentication</a></p>
+                <p id="section-toc.1-1.18.2.7.1"><a href="#section-18.7" class="auto internal xref">18.7</a>.  <a href="#name-metadata-resolution" class="internal xref">Metadata Resolution</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.18.2.8">
-                <p id="section-toc.1-1.18.2.8.1"><a href="#section-18.8" class="auto internal xref">18.8</a>.  <a href="#name-privacy" class="internal xref">Privacy</a></p>
+                <p id="section-toc.1-1.18.2.8.1"><a href="#section-18.8" class="auto internal xref">18.8</a>.  <a href="#name-immediate-client-authentica" class="internal xref">Immediate Client Authentication</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.18.2.9">
+                <p id="section-toc.1-1.18.2.9.1"><a href="#section-18.9" class="auto internal xref">18.9</a>.  <a href="#name-privacy" class="internal xref">Privacy</a></p>
 </li>
             </ul>
 </li>
@@ -1650,7 +1650,7 @@ Hop 3: broker-c -&gt; as-domain-1
        broker-c attests broker-b-client
 </pre><a href="#section-3-7" class="pilcrow">¶</a>
 </div>
-<p id="section-3-8">The protected resource remains constant across the chain:<a href="#section-3-8" class="pilcrow">¶</a></p>
+<p id="section-3-8">The requested protected resource remains constant across the chain:<a href="#section-3-8" class="pilcrow">¶</a></p>
 <div class="lang-text sourcecode" id="section-3-9">
 <pre>
 resource = https://api-domain-1.example.com
@@ -1992,27 +1992,21 @@ iss -&gt; authorization server metadata -&gt; jwks_uri -&gt; JWK selected by kid
 <p id="section-10-14">Because brokers in this profile are also authorization servers, a broker is expected to publish authorization server metadata <span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span> and a <code>jwks_uri</code>.<a href="#section-10-14" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="operation-attestclient">
+<div id="attesting-a-client">
 <section id="section-11">
-      <h2 id="name-operation-attest_client">
-<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-operation-attest_client" class="section-name selfRef">Operation: <code>attest_client</code></a>
+      <h2 id="name-attesting-a-client">
+<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-attesting-a-client" class="section-name selfRef">Attesting a Client</a>
       </h2>
-<p id="section-11-1">This profile defines one operation value:<a href="#section-11-1" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-11-2">
-<pre>
-"attest_client"
-</pre><a href="#section-11-2" class="pilcrow">¶</a>
-</div>
-<p id="section-11-3">The operation means:<a href="#section-11-3" class="pilcrow">¶</a></p>
-<div class="lang-text sourcecode" id="section-11-4">
+<p id="section-11-1">Attesting a client means:<a href="#section-11-1" class="pilcrow">¶</a></p>
+<div class="lang-text sourcecode" id="section-11-2">
 <pre>
 The entity identified by iss attests to the entity identified by aud
 that the client identified by client_ns and client_id is the delegated
 client for this authorization request hop.
-</pre><a href="#section-11-4" class="pilcrow">¶</a>
+</pre><a href="#section-11-2" class="pilcrow">¶</a>
 </div>
-<p id="section-11-5">For example:<a href="#section-11-5" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-11-6">
+<p id="section-11-3">For example:<a href="#section-11-3" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-11-4">
 <pre>
 {
   "iss": "https://broker-c.example.com",
@@ -2020,16 +2014,16 @@ client for this authorization request hop.
   "client_ns": "as",
   "client_id": "broker-b-client"
 }
+</pre><a href="#section-11-4" class="pilcrow">¶</a>
+</div>
+<p id="section-11-5">means:<a href="#section-11-5" class="pilcrow">¶</a></p>
+<div class="lang-text sourcecode" id="section-11-6">
+<pre>
+broker-c attests to as-domain-1 that broker-b-client
+is the delegated client for this hop.
 </pre><a href="#section-11-6" class="pilcrow">¶</a>
 </div>
-<p id="section-11-7">means:<a href="#section-11-7" class="pilcrow">¶</a></p>
-<div class="lang-text sourcecode" id="section-11-8">
-<pre>
-broker-c attests to as-domain-1 that broker-b-client is the delegated
-client for this hop.
-</pre><a href="#section-11-8" class="pilcrow">¶</a>
-</div>
-<p id="section-11-9">The upstream authorization server can then validate prior nodes to discover the terminal downstream client.<a href="#section-11-9" class="pilcrow">¶</a></p>
+<p id="section-11-7">The upstream authorization server can then validate prior nodes to discover the terminal downstream client.<a href="#section-11-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="signature-input">
@@ -2286,13 +2280,23 @@ chain[i].n = chain[i - 1].n + 1
       <h2 id="name-validating-a-delegation-cha">
 <a href="#section-15" class="section-number selfRef">15. </a><a href="#name-validating-a-delegation-cha" class="section-name selfRef">Validating a Delegation Chain</a>
       </h2>
-<p id="section-15-1">An authorization server validating a delegation chain performs the following checks.<a href="#section-15-1" class="pilcrow">¶</a></p>
+<p id="section-15-1">An authorization server validating a delegation chain performs the following
+checks.<a href="#section-15-1" class="pilcrow">¶</a></p>
+<p id="section-15-2">Validation is anchored at the receiving authorization server and proceeds from
+the final node of the chain toward the first node.  This reflects the trust
+model: the final node is the node addressed to the receiving authorization
+server, and each valid signed node commits to the previous node through
+<code>p_hash</code>.<a href="#section-15-2" class="pilcrow">¶</a></p>
+<p id="section-15-3">A node's signature is over the node's deterministic detached JWS payload,
+including its <code>p_hash</code> value and excluding the <code>proof</code> member.  Therefore, a
+valid signature on node <code>i</code> commits to node <code>i - 1</code> when <code>p_hash</code> is valid.<a href="#section-15-3" class="pilcrow">¶</a></p>
 <div id="step-1-schema-validation">
 <section id="section-15.1">
         <h3 id="name-step-1-schema-validation">
 <a href="#section-15.1" class="section-number selfRef">15.1. </a><a href="#name-step-1-schema-validation" class="section-name selfRef">Step 1 - Schema Validation</a>
         </h3>
-<p id="section-15.1-1">The authorization server validates that the authorization detail object contains:<a href="#section-15.1-1" class="pilcrow">¶</a></p>
+<p id="section-15.1-1">The authorization server validates that the authorization detail object
+contains:<a href="#section-15.1-1" class="pilcrow">¶</a></p>
 <div class="lang-json sourcecode" id="section-15.1-2">
 <pre>
 "type": "oauth_request_delegation_chain"
@@ -2311,7 +2315,8 @@ client_id
 proof.jws
 </pre><a href="#section-15.1-5" class="pilcrow">¶</a>
 </div>
-<p id="section-15.1-6">A receiver <span class="bcp14">MAY</span> reject nodes containing unsupported values or unsupported extension members.<a href="#section-15.1-6" class="pilcrow">¶</a></p>
+<p id="section-15.1-6">A receiver <span class="bcp14">MAY</span> reject nodes containing unsupported values or unsupported
+extension members.<a href="#section-15.1-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="step-2-client-namespace-validation">
@@ -2319,7 +2324,8 @@ proof.jws
         <h3 id="name-step-2-client-namespace-val">
 <a href="#section-15.2" class="section-number selfRef">15.2. </a><a href="#name-step-2-client-namespace-val" class="section-name selfRef">Step 2 - Client Namespace Validation</a>
         </h3>
-<p id="section-15.2-1">The authorization server verifies that each node contains a supported <code>client_ns</code> value.<a href="#section-15.2-1" class="pilcrow">¶</a></p>
+<p id="section-15.2-1">The authorization server verifies that each node contains a supported
+<code>client_ns</code> value.<a href="#section-15.2-1" class="pilcrow">¶</a></p>
 <p id="section-15.2-2">This profile defines:<a href="#section-15.2-2" class="pilcrow">¶</a></p>
 <div class="lang-text sourcecode" id="section-15.2-3">
 <pre>
@@ -2327,182 +2333,259 @@ as
 cimd
 </pre><a href="#section-15.2-3" class="pilcrow">¶</a>
 </div>
-<p id="section-15.2-4">If the authorization server does not support the <code>client_ns</code> value, it <span class="bcp14">MUST</span> reject the authorization detail object.<a href="#section-15.2-4" class="pilcrow">¶</a></p>
+<p id="section-15.2-4">If the authorization server does not support the <code>client_ns</code> value, it <span class="bcp14">MUST</span>
+reject the authorization detail object.<a href="#section-15.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="step-3-ordering-validation">
+<div id="delegation-chain-terminal-node-preflight">
 <section id="section-15.3">
-        <h3 id="name-step-3-ordering-validation">
-<a href="#section-15.3" class="section-number selfRef">15.3. </a><a href="#name-step-3-ordering-validation" class="section-name selfRef">Step 3 - Ordering Validation</a>
+        <h3 id="name-step-3-terminal-node-prefli">
+<a href="#section-15.3" class="section-number selfRef">15.3. </a><a href="#name-step-3-terminal-node-prefli" class="section-name selfRef">Step 3 - Terminal Node Preflight</a>
         </h3>
-<p id="section-15.3-1">The authorization server verifies:<a href="#section-15.3-1" class="pilcrow">¶</a></p>
-<div class="lang-text sourcecode" id="section-15.3-2">
+<p id="section-15.3-1">Let <code>last</code> be the index of the final node in the chain.<a href="#section-15.3-1" class="pilcrow">¶</a></p>
+<p id="section-15.3-2">Before performing signature validation, the authorization server <span class="bcp14">MAY</span> perform
+fail-fast checks on the final node.<a href="#section-15.3-2" class="pilcrow">¶</a></p>
+<p id="section-15.3-3">The authorization server verifies that the final node is intended for it:<a href="#section-15.3-3" class="pilcrow">¶</a></p>
+<div class="lang-text sourcecode" id="section-15.3-4">
+<pre>
+chain[last].aud == receiving_authorization_server_issuer
+</pre><a href="#section-15.3-4" class="pilcrow">¶</a>
+</div>
+<p id="section-15.3-5">If the final node's <code>aud</code> value does not identify the receiving authorization
+server, the authorization server <span class="bcp14">MUST</span> reject the chain.<a href="#section-15.3-5" class="pilcrow">¶</a></p>
+<p id="section-15.3-6">The authorization server also verifies that the final node is plausibly bound
+to the OAuth client submitting the authorization request.<a href="#section-15.3-6" class="pilcrow">¶</a></p>
+<p id="section-15.3-7">The exact binding is deployment-specific, but the receiving authorization server
+<span class="bcp14">MUST</span> be able to establish that:<a href="#section-15.3-7" class="pilcrow">¶</a></p>
+<div class="lang-text sourcecode" id="section-15.3-8">
+<pre>
+chain[last].iss
+</pre><a href="#section-15.3-8" class="pilcrow">¶</a>
+</div>
+<p id="section-15.3-9">identifies, or is authorized to speak for, the authenticated OAuth client submitting the request.<a href="#section-15.3-9" class="pilcrow">¶</a></p>
+<p id="section-15.3-10">For example, if the request is submitted by an authenticated broker client, the
+authorization server can verify that the registered metadata for that OAuth
+client identifies:<a href="#section-15.3-10" class="pilcrow">¶</a></p>
+<div class="lang-text sourcecode" id="section-15.3-11">
+<pre>
+chain[last].iss
+</pre><a href="#section-15.3-11" class="pilcrow">¶</a>
+</div>
+<p id="section-15.3-12">as the broker authorization server or broker issuer for that client.<a href="#section-15.3-12" class="pilcrow">¶</a></p>
+<p id="section-15.3-13">If the authorization server cannot bind the final node's <code>iss</code> to the OAuth
+client submitting the request, it <span class="bcp14">MUST</span> reject the chain.<a href="#section-15.3-13" class="pilcrow">¶</a></p>
+<p id="section-15.3-14">The checks in this step are fail-fast checks.  Until the final node's signature
+has been verified, the authorization server <span class="bcp14">MUST</span> treat the final node's <code>iss</code>,
+<code>aud</code>, and other members as unauthenticated input.  A successful preflight check
+does not by itself authenticate the node or the chain.<a href="#section-15.3-14" class="pilcrow">¶</a></p>
+<p id="section-15.3-15">The <code>aud</code> value identifies an authorization server or broker-AS, not a
+protected resource API.  Protected resource identifiers are represented using
+the <code>resource</code> member.<a href="#section-15.3-15" class="pilcrow">¶</a></p>
+<p id="section-15.3-16">A protected API endpoint <span class="bcp14">MUST NOT</span> appear in <code>aud</code>.<a href="#section-15.3-16" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="step-4-signature-validation">
+<section id="section-15.4">
+        <h3 id="name-step-4-signature-validation">
+<a href="#section-15.4" class="section-number selfRef">15.4. </a><a href="#name-step-4-signature-validation" class="section-name selfRef">Step 4 - Signature Validation</a>
+        </h3>
+<p id="section-15.4-1">For each node, the authorization server:<a href="#section-15.4-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-15.4-2">
+<li id="section-15.4-2.1">
+            <p id="section-15.4-2.1.1">Reads <code>iss</code>.<a href="#section-15.4-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-15.4-2.2">
+            <p id="section-15.4-2.2.1">Reads <code>proof.jws</code>.<a href="#section-15.4-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-15.4-2.3">
+            <p id="section-15.4-2.3.1">Parses <code>proof.jws</code> as a compact detached JWS.<a href="#section-15.4-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-15.4-2.4">
+            <p id="section-15.4-2.4.1">Verifies that the compact JWS contains an empty payload segment.<a href="#section-15.4-2.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-15.4-2.5">
+            <p id="section-15.4-2.5.1">Decodes the JWS Protected Header.<a href="#section-15.4-2.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-15.4-2.6">
+            <p id="section-15.4-2.6.1">Verifies that the JWS Protected Header contains <code>alg</code> and <code>kid</code>.<a href="#section-15.4-2.6.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-15.4-2.7">
+            <p id="section-15.4-2.7.1">Resolves the issuer metadata for <code>iss</code>.<a href="#section-15.4-2.7.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-15.4-2.8">
+            <p id="section-15.4-2.8.1">Obtains the issuer's <code>jwks_uri</code>.<a href="#section-15.4-2.8.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-15.4-2.9">
+            <p id="section-15.4-2.9.1">Fetches the issuer's JWK Set.<a href="#section-15.4-2.9.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-15.4-2.10">
+            <p id="section-15.4-2.10.1">Selects a key using the JWS Protected Header <code>kid</code>.<a href="#section-15.4-2.10.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-15.4-2.11">
+            <p id="section-15.4-2.11.1">Constructs the deterministic detached JWS payload for the node by
+serializing the node excluding the <code>proof</code> member.<a href="#section-15.4-2.11.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-15.4-2.12">
+            <p id="section-15.4-2.12.1">Verifies the detached JWS signature over that payload according to
+<span>[<a href="#RFC7515" class="cite xref">RFC7515</a>]</span>.<a href="#section-15.4-2.12.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-15.4-3">If a signature cannot be verified, the authorization server <span class="bcp14">MUST</span> reject the
+chain.<a href="#section-15.4-3" class="pilcrow">¶</a></p>
+<p id="section-15.4-4">After signature validation succeeds, the authorization server treats the signed
+members of each node as authenticated statements by that node's <code>iss</code>.<a href="#section-15.4-4" class="pilcrow">¶</a></p>
+<p id="section-15.4-5">In particular, the terminal preflight checks in <a href="#delegation-chain-terminal-node-preflight" class="auto internal xref">Section 15.3</a>
+are then authenticated because the final node's signature covers the same
+<code>iss</code>, <code>aud</code>, <code>client_ns</code>, <code>client_id</code>, <code>p_hash</code>, and other signed members.<a href="#section-15.4-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="step-5-backward-chain-validation">
+<section id="section-15.5">
+        <h3 id="name-step-5-backward-chain-valid">
+<a href="#section-15.5" class="section-number selfRef">15.5. </a><a href="#name-step-5-backward-chain-valid" class="section-name selfRef">Step 5 - Backward Chain Validation</a>
+        </h3>
+<p id="section-15.5-1">The authorization server validates the chain from the final node toward the
+first node.<a href="#section-15.5-1" class="pilcrow">¶</a></p>
+<p id="section-15.5-2">For every <code>i</code> from <code>last</code> down to <code>1</code>, the authorization server verifies:<a href="#section-15.5-2" class="pilcrow">¶</a></p>
+<div class="lang-text sourcecode" id="section-15.5-3">
+<pre>
+chain[i].p_hash == event_hash(chain[i - 1])
+chain[i - 1].aud == chain[i].iss
+chain[i].n == chain[i - 1].n + 1
+</pre><a href="#section-15.5-3" class="pilcrow">¶</a>
+</div>
+<p id="section-15.5-4">where <code>event_hash</code> is computed over the previous node's deterministic detached
+JWS payload and its <code>proof.jws</code> value.<a href="#section-15.5-4" class="pilcrow">¶</a></p>
+<p id="section-15.5-5">If any hash comparison fails, the authorization server <span class="bcp14">MUST</span> reject the chain.<a href="#section-15.5-5" class="pilcrow">¶</a></p>
+<p id="section-15.5-6">If any audience-continuity check fails, the authorization server <span class="bcp14">MUST</span> reject the
+chain.<a href="#section-15.5-6" class="pilcrow">¶</a></p>
+<p id="section-15.5-7">If any sequence-number check fails, the authorization server <span class="bcp14">MUST</span> reject the
+chain.<a href="#section-15.5-7" class="pilcrow">¶</a></p>
+<p id="section-15.5-8">The authorization server then verifies the first node:<a href="#section-15.5-8" class="pilcrow">¶</a></p>
+<div class="lang-text sourcecode" id="section-15.5-9">
 <pre>
 chain[0].n == 0
 chain[0].p_hash == null
-chain[i].n == chain[i - 1].n + 1
-</pre><a href="#section-15.3-2" class="pilcrow">¶</a>
+</pre><a href="#section-15.5-9" class="pilcrow">¶</a>
 </div>
-<p id="section-15.3-3">for every <code>i &gt; 0</code>.<a href="#section-15.3-3" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="step-4-hash-chain-validation">
-<section id="section-15.4">
-        <h3 id="name-step-4-hash-chain-validatio">
-<a href="#section-15.4" class="section-number selfRef">15.4. </a><a href="#name-step-4-hash-chain-validatio" class="section-name selfRef">Step 4 - Hash-Chain Validation</a>
-        </h3>
-<p id="section-15.4-1">For every node after the first, the authorization server verifies:<a href="#section-15.4-1" class="pilcrow">¶</a></p>
-<div class="lang-text sourcecode" id="section-15.4-2">
+<p id="section-15.5-10">If either check fails, the authorization server <span class="bcp14">MUST</span> reject the chain.<a href="#section-15.5-10" class="pilcrow">¶</a></p>
+<p id="section-15.5-11">The audience-continuity check ensures that every hop intentionally delegated to
+the next hop in the chain:<a href="#section-15.5-11" class="pilcrow">¶</a></p>
+<div class="lang-text sourcecode" id="section-15.5-12">
 <pre>
-chain[i].p_hash == event_hash(chain[i - 1])
-</pre><a href="#section-15.4-2" class="pilcrow">¶</a>
+chain[i - 1].aud == chain[i].iss
+</pre><a href="#section-15.5-12" class="pilcrow">¶</a>
 </div>
-<p id="section-15.4-3">where <code>event_hash</code> is computed over the previous node's deterministic detached JWS payload and its <code>proof.jws</code> value.<a href="#section-15.4-3" class="pilcrow">¶</a></p>
-<p id="section-15.4-4">If any hash comparison fails, the authorization server <span class="bcp14">MUST</span> reject the chain.<a href="#section-15.4-4" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="step-5-signature-validation">
-<section id="section-15.5">
-        <h3 id="name-step-5-signature-validation">
-<a href="#section-15.5" class="section-number selfRef">15.5. </a><a href="#name-step-5-signature-validation" class="section-name selfRef">Step 5 - Signature Validation</a>
-        </h3>
-<p id="section-15.5-1">For each node, the authorization server:<a href="#section-15.5-1" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-15.5-2">
-<li id="section-15.5-2.1">
-            <p id="section-15.5-2.1.1">Reads <code>iss</code>.<a href="#section-15.5-2.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-15.5-2.2">
-            <p id="section-15.5-2.2.1">Reads <code>proof.jws</code>.<a href="#section-15.5-2.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-15.5-2.3">
-            <p id="section-15.5-2.3.1">Parses <code>proof.jws</code> as a compact detached JWS.<a href="#section-15.5-2.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-15.5-2.4">
-            <p id="section-15.5-2.4.1">Verifies that the compact JWS contains an empty payload segment.<a href="#section-15.5-2.4.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-15.5-2.5">
-            <p id="section-15.5-2.5.1">Decodes the JWS Protected Header.<a href="#section-15.5-2.5.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-15.5-2.6">
-            <p id="section-15.5-2.6.1">Verifies that the JWS Protected Header contains <code>alg</code> and <code>kid</code>.<a href="#section-15.5-2.6.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-15.5-2.7">
-            <p id="section-15.5-2.7.1">Resolves the issuer metadata for <code>iss</code>.<a href="#section-15.5-2.7.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-15.5-2.8">
-            <p id="section-15.5-2.8.1">Obtains the issuer's <code>jwks_uri</code>.<a href="#section-15.5-2.8.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-15.5-2.9">
-            <p id="section-15.5-2.9.1">Fetches the issuer's JWK Set.<a href="#section-15.5-2.9.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-15.5-2.10">
-            <p id="section-15.5-2.10.1">Selects a key using the JWS Protected Header <code>kid</code>.<a href="#section-15.5-2.10.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-15.5-2.11">
-            <p id="section-15.5-2.11.1">Constructs the deterministic detached JWS payload for the node by serializing the node excluding the <code>proof</code> member.<a href="#section-15.5-2.11.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-15.5-2.12">
-            <p id="section-15.5-2.12.1">Verifies the detached JWS signature over that payload according to <span>[<a href="#RFC7515" class="cite xref">RFC7515</a>]</span>.<a href="#section-15.5-2.12.1" class="pilcrow">¶</a></p>
-</li>
-        </ol>
-<p id="section-15.5-3">If a signature cannot be verified, the authorization server <span class="bcp14">MUST</span> reject the chain.<a href="#section-15.5-3" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="step-6-audience-validation">
-<section id="section-15.6">
-        <h3 id="name-step-6-audience-validation">
-<a href="#section-15.6" class="section-number selfRef">15.6. </a><a href="#name-step-6-audience-validation" class="section-name selfRef">Step 6 - Audience Validation</a>
-        </h3>
-<p id="section-15.6-1">The authorization server verifies that the final node is intended for it:<a href="#section-15.6-1" class="pilcrow">¶</a></p>
-<div class="lang-text sourcecode" id="section-15.6-2">
-<pre>
-chain[last].aud == receiving_authorization_server_issuer
-</pre><a href="#section-15.6-2" class="pilcrow">¶</a>
-</div>
-<p id="section-15.6-3">For intermediate nodes, the authorization server <span class="bcp14">SHOULD</span> verify:<a href="#section-15.6-3" class="pilcrow">¶</a></p>
-<div class="lang-text sourcecode" id="section-15.6-4">
-<pre>
-chain[i].aud == chain[i + 1].iss
-</pre><a href="#section-15.6-4" class="pilcrow">¶</a>
-</div>
-<p id="section-15.6-5">This ensures that the chain path matches the intended authorization server or broker-AS path.<a href="#section-15.6-5" class="pilcrow">¶</a></p>
-<p id="section-15.6-6">The <code>aud</code> value identifies an authorization server or broker-AS, not a protected resource API. Protected resource identifiers are represented using the <code>resource</code> member.<a href="#section-15.6-6" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="step-7-resource-consistency-validation">
-<section id="section-15.7">
-        <h3 id="name-step-7-resource-consistency">
-<a href="#section-15.7" class="section-number selfRef">15.7. </a><a href="#name-step-7-resource-consistency" class="section-name selfRef">Step 7 - Resource Consistency Validation</a>
-        </h3>
-<p id="section-15.7-1">If multiple nodes contain <code>resource</code>, the authorization server <span class="bcp14">SHOULD</span> verify that the resource value is consistent across the chain, unless local policy explicitly permits resource transformation.<a href="#section-15.7-1" class="pilcrow">¶</a></p>
-<p id="section-15.7-2">A protected API endpoint <span class="bcp14">MUST NOT</span> appear in <code>aud</code>.<a href="#section-15.7-2" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="step-8-relationship-validation">
-<section id="section-15.8">
-        <h3 id="name-step-8-relationship-validat">
-<a href="#section-15.8" class="section-number selfRef">15.8. </a><a href="#name-step-8-relationship-validat" class="section-name selfRef">Step 8 - Relationship Validation</a>
-        </h3>
-<p id="section-15.8-1">The authorization server <span class="bcp14">SHOULD</span> verify that adjacent nodes are consistent.<a href="#section-15.8-1" class="pilcrow">¶</a></p>
-<p id="section-15.8-2">For a chain:<a href="#section-15.8-2" class="pilcrow">¶</a></p>
-<div class="lang-text sourcecode" id="section-15.8-3">
+<p id="section-15.5-13">Thus, for a chain:<a href="#section-15.5-13" class="pilcrow">¶</a></p>
+<div class="lang-text sourcecode" id="section-15.5-14">
 <pre>
 node[0] -&gt; node[1] -&gt; node[2]
-</pre><a href="#section-15.8-3" class="pilcrow">¶</a>
+</pre><a href="#section-15.5-14" class="pilcrow">¶</a>
 </div>
-<p id="section-15.8-4">the following should hold:<a href="#section-15.8-4" class="pilcrow">¶</a></p>
-<div class="lang-text sourcecode" id="section-15.8-5">
+<p id="section-15.5-15">the following <span class="bcp14">MUST</span> hold:<a href="#section-15.5-15" class="pilcrow">¶</a></p>
+<div class="lang-text sourcecode" id="section-15.5-16">
 <pre>
 node[0].aud == node[1].iss
 node[1].aud == node[2].iss
-</pre><a href="#section-15.8-5" class="pilcrow">¶</a>
+</pre><a href="#section-15.5-16" class="pilcrow">¶</a>
 </div>
-<p id="section-15.8-6">The final node identifies the client that the immediate trusted broker is attesting. Prior nodes reveal what that client was itself carrying.<a href="#section-15.8-6" class="pilcrow">¶</a></p>
-<p id="section-15.8-7">For example, if the final node is:<a href="#section-15.8-7" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-15.8-8">
+</section>
+</div>
+<div id="step-6-resource-consistency-validation">
+<section id="section-15.6">
+        <h3 id="name-step-6-resource-consistency">
+<a href="#section-15.6" class="section-number selfRef">15.6. </a><a href="#name-step-6-resource-consistency" class="section-name selfRef">Step 6 - Resource Consistency Validation</a>
+        </h3>
+<p id="section-15.6-1">If multiple nodes contain <code>resource</code>, the authorization server <span class="bcp14">SHOULD</span> verify
+that the resource value is consistent across the chain, unless local policy
+explicitly permits resource transformation.<a href="#section-15.6-1" class="pilcrow">¶</a></p>
+<p id="section-15.6-2">If local policy permits resource transformation, the authorization server
+<span class="bcp14">SHOULD</span> verify that each transformation is allowed for the issuer performing the
+transformation.<a href="#section-15.6-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="step-7-delegation-relationship-validation">
+<section id="section-15.7">
+        <h3 id="name-step-7-delegation-relations">
+<a href="#section-15.7" class="section-number selfRef">15.7. </a><a href="#name-step-7-delegation-relations" class="section-name selfRef">Step 7 - Delegation Relationship Validation</a>
+        </h3>
+<p id="section-15.7-1">The authorization server <span class="bcp14">SHOULD</span> verify that adjacent nodes are semantically
+consistent.<a href="#section-15.7-1" class="pilcrow">¶</a></p>
+<p id="section-15.7-2">The final node identifies the client that the immediate trusted broker is
+attesting.  Prior nodes reveal what that client was itself carrying.<a href="#section-15.7-2" class="pilcrow">¶</a></p>
+<p id="section-15.7-3">For example, if the final node is:<a href="#section-15.7-3" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-15.7-4">
 <pre>
 {
   "iss": "https://broker-c.example.com",
   "client_ns": "as",
   "client_id": "broker-b-client"
 }
-</pre><a href="#section-15.8-8" class="pilcrow">¶</a>
+</pre><a href="#section-15.7-4" class="pilcrow">¶</a>
 </div>
-<p id="section-15.8-9">then the authorization server treats broker-c as attesting broker-b-client.<a href="#section-15.8-9" class="pilcrow">¶</a></p>
-<p id="section-15.8-10">The authorization server then validates the prior node signed by broker-b to determine which client broker-b was carrying.<a href="#section-15.8-10" class="pilcrow">¶</a></p>
+<p id="section-15.7-5">then the authorization server treats <code>https://broker-c.example.com</code> as
+attesting <code>broker-b-client</code>.<a href="#section-15.7-5" class="pilcrow">¶</a></p>
+<p id="section-15.7-6">The authorization server then validates the prior node signed by broker-b to
+determine which client broker-b was carrying.<a href="#section-15.7-6" class="pilcrow">¶</a></p>
+<p id="section-15.7-7">The authorization server <span class="bcp14">MAY</span> reject the chain if the attested client
+relationship is inconsistent with registration metadata, federation metadata, or
+local policy.<a href="#section-15.7-7" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="step-9-policy-validation">
-<section id="section-15.9">
-        <h3 id="name-step-9-policy-validation">
-<a href="#section-15.9" class="section-number selfRef">15.9. </a><a href="#name-step-9-policy-validation" class="section-name selfRef">Step 9 - Policy Validation</a>
+<div id="step-8-policy-validation">
+<section id="section-15.8">
+        <h3 id="name-step-8-policy-validation">
+<a href="#section-15.8" class="section-number selfRef">15.8. </a><a href="#name-step-8-policy-validation" class="section-name selfRef">Step 8 - Policy Validation</a>
         </h3>
-<p id="section-15.9-1">After cryptographic validation, the authorization server applies local policy.<a href="#section-15.9-1" class="pilcrow">¶</a></p>
-<p id="section-15.9-2">Policy decisions can consider:<a href="#section-15.9-2" class="pilcrow">¶</a></p>
+<p id="section-15.8-1">After cryptographic validation, the authorization server applies local policy.<a href="#section-15.8-1" class="pilcrow">¶</a></p>
+<p id="section-15.8-2">Cryptographic validation proves the integrity of the visible chain.  It does not
+prove that no upstream delegation context existed before <code>chain[0]</code>.<a href="#section-15.8-2" class="pilcrow">¶</a></p>
+<p id="section-15.8-3">In particular, a broker can originate a new chain beginning with itself as
+<code>chain[0]</code>.  Such re-origination can produce a cryptographically valid chain.
+Whether that chain is acceptable is a local policy decision for the receiving
+authorization server.<a href="#section-15.8-3" class="pilcrow">¶</a></p>
+<p id="section-15.8-4">Policy decisions can consider:<a href="#section-15.8-4" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-15.9-3.1">
-            <p id="section-15.9-3.1.1">the immediate client authenticated to the authorization server,<a href="#section-15.9-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-15.8-5.1">
+            <p id="section-15.8-5.1.1">the OAuth client authenticated to the authorization server,<a href="#section-15.8-5.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-15.9-3.2">
-            <p id="section-15.9-3.2.1">the final node's <code>iss</code>,<a href="#section-15.9-3.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-15.8-5.2">
+            <p id="section-15.8-5.2.1">the final node's <code>iss</code>, whether it is allowed for the authenticated OAuth client,<a href="#section-15.8-5.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-15.9-3.3">
-            <p id="section-15.9-3.3.1">the full set of brokers in the chain,<a href="#section-15.9-3.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-15.8-5.3">
+            <p id="section-15.8-5.3.1">the first node's <code>iss</code>, whether it is allowed to appear as a first-node issuer,<a href="#section-15.8-5.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-15.9-3.4">
-            <p id="section-15.9-3.4.1">the terminal client identified by the earliest client attestation,<a href="#section-15.9-3.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-15.8-5.4">
+            <p id="section-15.8-5.4.1">the full set of brokers in the chain,<a href="#section-15.8-5.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-15.9-3.5">
-            <p id="section-15.9-3.5.1">the resources identified by <code>resource</code>,<a href="#section-15.9-3.5.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-15.8-5.5">
+            <p id="section-15.8-5.5.1">whether each broker is allowed to appear in its position in the chain,<a href="#section-15.8-5.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-15.9-3.6">
-            <p id="section-15.9-3.6.1">the user subject identified by <code>sub</code>, if present, and<a href="#section-15.9-3.6.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-15.8-5.6">
+            <p id="section-15.8-5.6.1">the terminal client identified by the earliest client attestation,<a href="#section-15.8-5.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-15.9-3.7">
-            <p id="section-15.9-3.7.1">the full delegation chain hash.<a href="#section-15.9-3.7.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-15.8-5.7">
+            <p id="section-15.8-5.7.1">the resources identified by <code>resource</code>,<a href="#section-15.8-5.7.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-15.8-5.8">
+            <p id="section-15.8-5.8.1">the user subject identified by <code>sub</code>, if present,<a href="#section-15.8-5.8.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-15.8-5.9">
+            <p id="section-15.8-5.9.1">the full delegation chain hash, and<a href="#section-15.8-5.9.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-15.8-5.10">
+            <p id="section-15.8-5.10.1">deployment-specific expectations about allowed direct and indirect paths.<a href="#section-15.8-5.10.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-15.9-4">The authorization server <span class="bcp14">MAY</span> reject the request if any broker, client, namespace, resource, or path is not allowed.<a href="#section-15.9-4" class="pilcrow">¶</a></p>
+<p id="section-15.8-6">The final node's <code>iss</code> is used to validate the relationship between the
+authenticated OAuth client and the broker-AS or AS that produced the final
+delegation-chain node.<a href="#section-15.8-6" class="pilcrow">¶</a></p>
+<p id="section-15.8-7">The first node's <code>iss</code> is used to evaluate whether the visible chain is allowed
+to begin with that issuer.  This is the policy check that addresses
+head-truncation or re-origination.  Cryptographic validation cannot prove that
+no upstream nodes existed before <code>chain[0]</code>.<a href="#section-15.8-7" class="pilcrow">¶</a></p>
+<p id="section-15.8-8">The authorization server <span class="bcp14">MAY</span> reject the request if any broker, client,
+namespace, resource, subject, first-node issuer, or path is not allowed.<a href="#section-15.8-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2614,88 +2697,123 @@ Location: https://client.example/callback?
       <h2 id="name-security-considerations">
 <a href="#section-18" class="section-number selfRef">18. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
-<div id="tampering">
+<div id="chain-integrity">
 <section id="section-18.1">
-        <h3 id="name-tampering">
-<a href="#section-18.1" class="section-number selfRef">18.1. </a><a href="#name-tampering" class="section-name selfRef">Tampering</a>
+        <h3 id="name-chain-integrity">
+<a href="#section-18.1" class="section-number selfRef">18.1. </a><a href="#name-chain-integrity" class="section-name selfRef">Chain Integrity</a>
         </h3>
-<p id="section-18.1-1">The hash chain and per-node detached JWS signatures are intended to detect node modification, insertion, deletion, reordering, and signature substitution.<a href="#section-18.1-1" class="pilcrow">¶</a></p>
-<p id="section-18.1-2">A receiver <span class="bcp14">MUST</span> reject a chain if any hash-link or signature check fails.<a href="#section-18.1-2" class="pilcrow">¶</a></p>
+<p id="section-18.1-1">The hash chain, per-node detached JWS signatures, sequence numbers, and audience
+continuity checks are intended to detect modification, insertion, deletion,
+reordering, and signature substitution within the visible delegation chain.<a href="#section-18.1-1" class="pilcrow">¶</a></p>
+<p id="section-18.1-2">A receiver <span class="bcp14">MUST</span> reject a chain if any required validation check described in
+<a href="#validating-a-delegation-chain" class="auto internal xref">Section 15</a> fails.<a href="#section-18.1-2" class="pilcrow">¶</a></p>
+<p id="section-18.1-3">A valid signature proves only that the identified issuer signed the node. It
+does not imply that the issuer is trusted for the requested delegation.<a href="#section-18.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="truncation-and-re-origination">
+<section id="section-18.2">
+        <h3 id="name-truncation-and-re-originati">
+<a href="#section-18.2" class="section-number selfRef">18.2. </a><a href="#name-truncation-and-re-originati" class="section-name selfRef">Truncation and Re-origination</a>
+        </h3>
+<p id="section-18.2-1">Truncation has three relevant cases.<a href="#section-18.2-1" class="pilcrow">¶</a></p>
+<p id="section-18.2-2">Tail truncation is detected by the terminal audience check: a shortened chain
+will not end in a node whose <code>aud</code> identifies the receiving authorization
+server.<a href="#section-18.2-2" class="pilcrow">¶</a></p>
+<p id="section-18.2-3">Middle removal is detected by the hash-chain and audience-continuity checks:
+removing an intermediate node breaks the successor's <code>p_hash</code> and the adjacent
+issuer/audience relationship.<a href="#section-18.2-3" class="pilcrow">¶</a></p>
+<p id="section-18.2-4">Head truncation, or re-origination, is different. A broker can create a fresh
+chain beginning with itself as <code>chain[0]</code>. Cryptographic validation proves the
+integrity of the visible chain, but cannot prove that no upstream context
+existed before <code>chain[0]</code>.<a href="#section-18.2-4" class="pilcrow">¶</a></p>
+<p id="section-18.2-5">Authorization servers <span class="bcp14">MUST</span> handle re-origination through local policy,
+including whether <code>chain[0].iss</code> is allowed to appear as the first visible
+issuer for the requested client, resource, and deployment context.<a href="#section-18.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="replay">
-<section id="section-18.2">
+<section id="section-18.3">
         <h3 id="name-replay">
-<a href="#section-18.2" class="section-number selfRef">18.2. </a><a href="#name-replay" class="section-name selfRef">Replay</a>
+<a href="#section-18.3" class="section-number selfRef">18.3. </a><a href="#name-replay" class="section-name selfRef">Replay</a>
         </h3>
-<p id="section-18.2-1">This profile does not define expiration, nonce, or replay-cache claims in the base structure.<a href="#section-18.2-1" class="pilcrow">¶</a></p>
-<p id="section-18.2-2">Deployments that require replay protection <span class="bcp14">MAY</span> add additional claims, such as timestamps, nonces, transaction identifiers, or request references, as deployment-specific extensions.<a href="#section-18.2-2" class="pilcrow">¶</a></p>
+<p id="section-18.3-1">This profile does not define expiration, nonce, or replay-cache claims in the
+base structure.<a href="#section-18.3-1" class="pilcrow">¶</a></p>
+<p id="section-18.3-2">Deployments that require replay protection <span class="bcp14">MAY</span> add such claims as
+deployment-specific extensions and validate them according to local policy.<a href="#section-18.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="display-names">
-<section id="section-18.3">
+<section id="section-18.4">
         <h3 id="name-display-names">
-<a href="#section-18.3" class="section-number selfRef">18.3. </a><a href="#name-display-names" class="section-name selfRef">Display Names</a>
+<a href="#section-18.4" class="section-number selfRef">18.4. </a><a href="#name-display-names" class="section-name selfRef">Display Names</a>
         </h3>
-<p id="section-18.3-1"><code>client_name</code> is intended only for display.<a href="#section-18.3-1" class="pilcrow">¶</a></p>
-<p id="section-18.3-2">Authorization servers <span class="bcp14">MUST NOT</span> use <code>client_name</code> as a security identifier.<a href="#section-18.3-2" class="pilcrow">¶</a></p>
-<p id="section-18.3-3">The stable security identifier depends on <code>client_ns</code> and applicable issuer context as described in this document.<a href="#section-18.3-3" class="pilcrow">¶</a></p>
+<p id="section-18.4-1"><code>client_name</code> is intended only for display.<a href="#section-18.4-1" class="pilcrow">¶</a></p>
+<p id="section-18.4-2">Authorization servers <span class="bcp14">MUST NOT</span> use <code>client_name</code> as a security identifier.<a href="#section-18.4-2" class="pilcrow">¶</a></p>
+<p id="section-18.4-3">The stable security identifier depends on <code>client_ns</code>, <code>client_id</code>, and the
+applicable issuer or namespace context.<a href="#section-18.4-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="trust-in-attesters">
-<section id="section-18.4">
+<section id="section-18.5">
         <h3 id="name-trust-in-attesters">
-<a href="#section-18.4" class="section-number selfRef">18.4. </a><a href="#name-trust-in-attesters" class="section-name selfRef">Trust in Attesters</a>
+<a href="#section-18.5" class="section-number selfRef">18.5. </a><a href="#name-trust-in-attesters" class="section-name selfRef">Trust in Attesters</a>
         </h3>
-<p id="section-18.4-1">A valid signature proves only that the attester signed the node. It does not imply that the attester is trusted for the requested delegation.<a href="#section-18.4-1" class="pilcrow">¶</a></p>
-<p id="section-18.4-2">Authorization servers <span class="bcp14">MUST</span> apply local trust policy before accepting any attester, broker, namespace, client, or delegation path.<a href="#section-18.4-2" class="pilcrow">¶</a></p>
+<p id="section-18.5-1">A valid chain establishes integrity and provenance of the visible attestations.
+It does not establish that the attesters, clients, resources, subjects, or path
+are acceptable.<a href="#section-18.5-1" class="pilcrow">¶</a></p>
+<p id="section-18.5-2">Authorization servers <span class="bcp14">MUST</span> apply local trust policy before accepting a
+delegation chain.<a href="#section-18.5-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="trust-in-broker-client-metadata">
-<section id="section-18.5">
+<section id="section-18.6">
         <h3 id="name-trust-in-broker-client-meta">
-<a href="#section-18.5" class="section-number selfRef">18.5. </a><a href="#name-trust-in-broker-client-meta" class="section-name selfRef">Trust in Broker Client Metadata</a>
+<a href="#section-18.6" class="section-number selfRef">18.6. </a><a href="#name-trust-in-broker-client-meta" class="section-name selfRef">Trust in Broker Client Metadata</a>
         </h3>
-<p id="section-18.5-1">The <code>client_roles</code> client metadata member can indicate that a client is expected to act as an OAuth broker.<a href="#section-18.5-1" class="pilcrow">¶</a></p>
-<p id="section-18.5-2">An authorization server <span class="bcp14">MUST NOT</span> treat self-asserted <code>client_roles</code> metadata as proof that the client is trustworthy, authorized to broker authorization requests, or authorized to represent downstream clients.<a href="#section-18.5-2" class="pilcrow">¶</a></p>
-<p id="section-18.5-3">An authorization server <span class="bcp14">MUST</span> only rely on <code>client_roles</code> for security decisions when the metadata was established through a trusted mechanism, such as administrative registration, a trusted dynamic client registration process, a trusted software statement, federation metadata, or other local trust policy.<a href="#section-18.5-3" class="pilcrow">¶</a></p>
-<p id="section-18.5-4">A malicious client could falsely claim:<a href="#section-18.5-4" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-18.5-5">
-<pre>
-{
-  "client_roles": ["oauth_broker"]
-}
-</pre><a href="#section-18.5-5" class="pilcrow">¶</a>
-</div>
-<p id="section-18.5-6">Therefore, the presence of <code>oauth_broker</code> only identifies the role the client claims or is configured to perform. It does not validate the broker, the downstream client, the delegation path, or the requested authorization.<a href="#section-18.5-6" class="pilcrow">¶</a></p>
+<p id="section-18.6-1">The <code>client_roles</code> client metadata member can indicate that a client is expected
+to act as an OAuth broker.<a href="#section-18.6-1" class="pilcrow">¶</a></p>
+<p id="section-18.6-2">An authorization server <span class="bcp14">MUST NOT</span> treat self-asserted <code>client_roles</code> metadata as
+proof that the client is trustworthy, authorized to broker authorization
+requests, or authorized to represent downstream clients.<a href="#section-18.6-2" class="pilcrow">¶</a></p>
+<p id="section-18.6-3">An authorization server <span class="bcp14">MUST</span> rely on <code>client_roles</code> for security decisions only
+when the metadata was established through a trusted mechanism, such as
+administrative registration, trusted dynamic client registration, a trusted
+software statement, federation metadata, or local trust policy.<a href="#section-18.6-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="metadata-resolution">
-<section id="section-18.6">
+<section id="section-18.7">
         <h3 id="name-metadata-resolution">
-<a href="#section-18.6" class="section-number selfRef">18.6. </a><a href="#name-metadata-resolution" class="section-name selfRef">Metadata Resolution</a>
+<a href="#section-18.7" class="section-number selfRef">18.7. </a><a href="#name-metadata-resolution" class="section-name selfRef">Metadata Resolution</a>
         </h3>
-<p id="section-18.6-1">This profile assumes that attesters publish verification keys through authorization server metadata and <code>jwks_uri</code>.<a href="#section-18.6-1" class="pilcrow">¶</a></p>
-<p id="section-18.6-2">If metadata cannot be resolved, or if the key identified by <code>kid</code> cannot be found, the receiver <span class="bcp14">MUST</span> reject the affected node.<a href="#section-18.6-2" class="pilcrow">¶</a></p>
+<p id="section-18.7-1">This profile assumes that attesters publish verification keys through
+authorization server metadata and <code>jwks_uri</code>.<a href="#section-18.7-1" class="pilcrow">¶</a></p>
+<p id="section-18.7-2">If metadata cannot be resolved, is not trusted, or does not contain the key
+identified by <code>kid</code>, the receiver <span class="bcp14">MUST</span> reject the affected node.<a href="#section-18.7-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="immediate-client-authentication">
-<section id="section-18.7">
+<section id="section-18.8">
         <h3 id="name-immediate-client-authentica">
-<a href="#section-18.7" class="section-number selfRef">18.7. </a><a href="#name-immediate-client-authentica" class="section-name selfRef">Immediate Client Authentication</a>
+<a href="#section-18.8" class="section-number selfRef">18.8. </a><a href="#name-immediate-client-authentica" class="section-name selfRef">Immediate Client Authentication</a>
         </h3>
-<p id="section-18.7-1">The delegation chain does not replace OAuth client authentication.<a href="#section-18.7-1" class="pilcrow">¶</a></p>
-<p id="section-18.7-2">An authorization server <span class="bcp14">MUST</span> still authenticate the immediate OAuth client according to its normal OAuth processing rules.<a href="#section-18.7-2" class="pilcrow">¶</a></p>
-<p id="section-18.7-3">The authorization server <span class="bcp14">SHOULD</span> verify that the authenticated immediate client is consistent with the final delegation node.<a href="#section-18.7-3" class="pilcrow">¶</a></p>
+<p id="section-18.8-1">The delegation chain does not replace OAuth client authentication.<a href="#section-18.8-1" class="pilcrow">¶</a></p>
+<p id="section-18.8-2">An authorization server <span class="bcp14">MUST</span> still authenticate the immediate OAuth client
+according to its normal OAuth processing rules.<a href="#section-18.8-2" class="pilcrow">¶</a></p>
+<p id="section-18.8-3">The authorization server <span class="bcp14">MUST</span> verify that the authenticated immediate client is
+consistent with the final delegation node.<a href="#section-18.8-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="privacy">
-<section id="section-18.8">
+<section id="section-18.9">
         <h3 id="name-privacy">
-<a href="#section-18.8" class="section-number selfRef">18.8. </a><a href="#name-privacy" class="section-name selfRef">Privacy</a>
+<a href="#section-18.9" class="section-number selfRef">18.9. </a><a href="#name-privacy" class="section-name selfRef">Privacy</a>
         </h3>
-<p id="section-18.8-1">A delegation chain can reveal intermediaries, downstream clients, resources, and possibly subjects.<a href="#section-18.8-1" class="pilcrow">¶</a></p>
-<p id="section-18.8-2">Deployments <span class="bcp14">SHOULD</span> minimize included data and avoid including unnecessary personally identifiable information.<a href="#section-18.8-2" class="pilcrow">¶</a></p>
+<p id="section-18.9-1">A delegation chain can reveal intermediaries, downstream clients, resources, and
+possibly subjects.<a href="#section-18.9-1" class="pilcrow">¶</a></p>
+<p id="section-18.9-2">Deployments <span class="bcp14">SHOULD</span> minimize included data and avoid including unnecessary
+personally identifiable information.<a href="#section-18.9-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
