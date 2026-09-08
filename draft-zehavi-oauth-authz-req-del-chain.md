@@ -69,7 +69,7 @@ informative:
 Brokered OAuth redirect authorization requests involve intermediary authorization servers between a downstream client and the upstream authorization server that obtains user consent and issues tokens.
 Such deployments have security risks because the upstream authorization server sees only the immediate OAuth client and is unaware of the downstream client or intermediary brokers obtaining its response.
 
-This document defines an informative OAuth 2.0 profile for carrying a verifiable, signed authorization request delegation chain as a RAR `authorization_details` object {{RFC9396}}. Each node in the chain is a JSON object signed by the attesting authorization server or broker using detached JWS {{RFC7515}}, attesting its validated client, hash-linked to the previous node, allowing the upstream authorization server to validate the exact delegation path before issuing tokens.
+This document defines an informative OAuth 2.0 profile for carrying a verifiable, signed authorization request delegation chain as a RAR `authorization_details` object {{RFC9396}}. Each node in the chain is a JSON object signed by the attesting authorization server or broker using detached JWS {{RFC7515}}, attesting its validated client, hash-linked to the previous node, allowing the upstream authorization server to validate the integrity of the visible delegation path and apply policy before issuing tokens.
 
 --- middle
 
@@ -127,7 +127,8 @@ This document addresses transaction-specific authorization request delegation pa
 * Which downstream client initiated this redirect authorization request?
 * Which brokers carried the request?
 * Which entity attested each hop?
-* Was the authorization request delegation chain reordered, truncated, or modified?
+* Was the visible authorization request delegation chain reordered, shortened at the tail, altered in the middle, or modified?
+* Is the visible first node acceptable under local policy?
 
 Deployments MAY use OpenID Federation to establish trust in the entities that appear in a delegation chain. For example, `iss` values in this profile can correspond to federated entity identifiers, and federation metadata can be used to discover keys or validate metadata policy.
 
@@ -137,7 +138,7 @@ This document does not replace OpenID Federation. Instead, it can consume or com
 
 The OAuth Client ID Metadata Document draft (aka: CIMD) defines a mechanism by which an OAuth client can use a URL as its `client_id`, where the URL references a client metadata document that can be fetched by an authorization server {{I-D.ietf-oauth-client-id-metadata-document}}.
 
-This document is complementary to that mechanism and points to CIMD client_id's when such were used.
+This document is complementary to that mechanism and can reference CIMD-style `client_id` values when used.
 
 A delegation node can use a CIMD-style `client_id` by setting `client_ns` to `cimd` and `client_id` to the metadata document URL. For example:
 
@@ -415,7 +416,10 @@ A delegation node is a JSON object with the following members.
 | `resource` | No | Resource indicators or protected resource identifiers relevant to the authorization request. |
 | `proof` | Yes | Cryptographic proof object. |
 
-Additional members MAY be included by deployments or future specifications. Receivers MUST ignore unknown members unless local policy requires rejecting them.
+Additional members MAY be included only if their signing-payload representation
+is defined by this document, a future specification, or a mutually understood
+extension. A receiver MUST reject unsupported extension members unless local
+policy explicitly allows them to be ignored.
 
 The stable security identifier for an attested client depends on the `client_ns` value.
 
@@ -431,8 +435,7 @@ For `client_ns` value `cimd`, the stable identifier is:
 client_id
 ~~~
 
-The applicable AS issuer context is determined from the attesting node or from the prior node that originally introduced the AS-local client.
-
+For `client_ns` value `as`, the applicable AS issuer context is the `iss` value of the node that attests the client.
 The `client_name` value is display-only and MUST NOT be used as a security identifier.
 
 # Proof Object
@@ -544,7 +547,13 @@ resource
 
 The `proof` member is excluded.
 
-Array values are serialized as comma-separated JSON string values in array order.
+Members not included in this signing-payload definition are not protected by the
+node signature. Security-relevant extensions therefore MUST define how they are
+included in the signing payload, or receivers MUST reject them.
+
+Array values are serialized by joining each array element's JSON string
+serialization, in array order, with a comma character. No extra whitespace is
+inserted.
 
 For example:
 
@@ -591,14 +600,11 @@ chain[i].p_hash = event_hash(chain[i - 1]) for i > 0
 chain[i].n = chain[i - 1].n + 1
 ~~~
 
-This construction binds both the delegation node payload and the JWS protected header and signature. It protects against:
+This construction cryptographically binds each node to the signed event that
+precedes it. Validation of the hash chain, sequence numbers, and audience
+continuity detects modification, insertion, deletion, reordering, and signature
+substitution within the visible chain.
 
-* reordering nodes,
-* inserting nodes,
-* deleting nodes,
-* modifying a prior node,
-* replacing a prior signed node with a different signed node, and
-* substituting a different JWS protected header or signature for a prior node.
 
 # Creating or Adding to a Delegation Chain
 
@@ -774,12 +780,14 @@ cimd
 If the authorization server does not support the `client_ns` value, it MUST
 reject the authorization detail object.
 
-## Step 3 - Terminal Node Preflight {#delegation-chain-terminal-node-preflight}
+## Step 3 - Terminal Node Checks {#delegation-chain-terminal-node-checks}
 
 Let `last` be the index of the final node in the chain.
 
-Before performing signature validation, the authorization server MAY perform
-fail-fast checks on the final node.
+The authorization server performs the following checks on the final node before
+performing signature validation. These checks are fail-fast checks over
+unauthenticated input: failure is sufficient to reject the request, but success
+does not authenticate the node or the chain.
 
 The authorization server verifies that the final node is intended for it:
 
@@ -830,13 +838,15 @@ A protected API endpoint MUST NOT appear in `aud`.
 
 For each node, the authorization server:
 
-1. Reads `iss`.
+1. Reads `iss`. The `iss` value is untrusted until the node signature is verified. Before using
+`iss` for metadata retrieval, the authorization server MUST apply its normal
+issuer validation, discovery, allow-list, federation, or local trust policy.
 2. Reads `proof.jws`.
 3. Parses `proof.jws` as a compact detached JWS.
 4. Verifies that the compact JWS contains an empty payload segment.
 5. Decodes the JWS Protected Header.
 6. Verifies that the JWS Protected Header contains `alg` and `kid`.
-7. Resolves the issuer metadata for `iss`.
+7. Resolves the issuer metadata for `iss`. The resolved authorization server metadata issuer value MUST match `iss`.
 8. Obtains the issuer's `jwks_uri`.
 9. Fetches the issuer's JWK Set.
 10. Selects a key using the JWS Protected Header `kid`.
@@ -851,7 +861,7 @@ chain.
 After signature validation succeeds, the authorization server treats the signed
 members of each node as authenticated statements by that node's `iss`.
 
-In particular, the terminal preflight checks in {{delegation-chain-terminal-node-preflight}}
+In particular, the terminal preflight checks in {{delegation-chain-terminal-node-checks}}
 are then authenticated because the final node's signature covers the same
 `iss`, `aud`, `client_ns`, `client_id`, `p_hash`, and other signed members.
 
@@ -965,7 +975,7 @@ Policy decisions can consider:
 * the first node's `iss`, whether it is allowed to appear as a first-node issuer,
 * the full set of brokers in the chain,
 * whether each broker is allowed to appear in its position in the chain,
-* the terminal client identified by the earliest client attestation,
+* the client identified by the first visible client attestation,
 * the resources identified by `resource`,
 * the user subject identified by `sub`, if present,
 * the full delegation chain hash, and
@@ -997,7 +1007,7 @@ Instead, when a valid delegation chain is present, the authorization server SHOU
 user
 + authorization server issuer
 + immediate broker
-+ terminal client identity
++ client identity accepted as the terminal client
 + broker path
 + resource
 + delegation chain hash
