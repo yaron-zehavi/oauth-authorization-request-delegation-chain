@@ -27,7 +27,8 @@ Abstract
    JSON object signed by the attesting authorization server or broker
    using detached JWS [RFC7515], attesting its validated client, hash-
    linked to the previous node, allowing the upstream authorization
-   server to validate the exact delegation path before issuing tokens.
+   server to validate the integrity of the visible delegation path and
+   apply policy before issuing tokens.
 
 About This Document
 
@@ -111,7 +112,7 @@ Table of Contents
    15. Validating a Delegation Chain
      15.1.  Step 1 - Schema Validation
      15.2.  Step 2 - Client Namespace Validation
-     15.3.  Step 3 - Terminal Node Preflight
+     15.3.  Step 3 - Terminal Node Checks
      15.4.  Step 4 - Signature Validation
      15.5.  Step 5 - Backward Chain Validation
      15.6.  Step 6 - Resource Consistency Validation
@@ -255,8 +256,10 @@ Table of Contents
 
    *  Which entity attested each hop?
 
-   *  Was the authorization request delegation chain reordered,
-      truncated, or modified?
+   *  Was the visible authorization request delegation chain reordered,
+      shortened at the tail, altered in the middle, or modified?
+
+   *  Is the visible first node acceptable under local policy?
 
    Deployments MAY use OpenID Federation to establish trust in the
    entities that appear in a delegation chain.  For example, iss values
@@ -277,8 +280,8 @@ Table of Contents
    fetched by an authorization server
    [I-D.ietf-oauth-client-id-metadata-document].
 
-   This document is complementary to that mechanism and points to CIMD
-   client_id's when such were used.
+   This document is complementary to that mechanism and can reference
+   CIMD-style client_id values when used.
 
    A delegation node can use a CIMD-style client_id by setting client_ns
    to cimd and client_id to the metadata document URL.  For example:
@@ -709,9 +712,11 @@ Table of Contents
 
                                   Table 2
 
-   Additional members MAY be included by deployments or future
-   specifications.  Receivers MUST ignore unknown members unless local
-   policy requires rejecting them.
+   Additional members MAY be included only if their signing-payload
+   representation is defined by this document, a future specification,
+   or a mutually understood extension.  A receiver MUST reject
+   unsupported extension members unless local policy explicitly allows
+   them to be ignored.
 
    The stable security identifier for an attested client depends on the
    client_ns value.
@@ -724,12 +729,9 @@ Table of Contents
 
    client_id
 
-   The applicable AS issuer context is determined from the attesting
-   node or from the prior node that originally introduced the AS-local
-   client.
-
-   The client_name value is display-only and MUST NOT be used as a
-   security identifier.
+   For client_ns value as, the applicable AS issuer context is the iss
+   value of the node that attests the client.  The client_name value is
+   display-only and MUST NOT be used as a security identifier.
 
 10.  Proof Object
 
@@ -843,8 +845,14 @@ Table of Contents
 
    The proof member is excluded.
 
-   Array values are serialized as comma-separated JSON string values in
-   array order.
+   Members not included in this signing-payload definition are not
+   protected by the node signature.  Security-relevant extensions
+   therefore MUST define how they are included in the signing payload,
+   or receivers MUST reject them.
+
+   Array values are serialized by joining each array element's JSON
+   string serialization, in array order, with a comma character.  No
+   extra whitespace is inserted.
 
    For example:
 
@@ -888,21 +896,11 @@ Table of Contents
    chain[i].p_hash = event_hash(chain[i - 1]) for i > 0
    chain[i].n = chain[i - 1].n + 1
 
-   This construction binds both the delegation node payload and the JWS
-   protected header and signature.  It protects against:
-
-   *  reordering nodes,
-
-   *  inserting nodes,
-
-   *  deleting nodes,
-
-   *  modifying a prior node,
-
-   *  replacing a prior signed node with a different signed node, and
-
-   *  substituting a different JWS protected header or signature for a
-      prior node.
+   This construction cryptographically binds each node to the signed
+   event that precedes it.  Validation of the hash chain, sequence
+   numbers, and audience continuity detects modification, insertion,
+   deletion, reordering, and signature substitution within the visible
+   chain.
 
 14.  Creating or Adding to a Delegation Chain
 
@@ -1073,12 +1071,15 @@ Table of Contents
    If the authorization server does not support the client_ns value, it
    MUST reject the authorization detail object.
 
-15.3.  Step 3 - Terminal Node Preflight
+15.3.  Step 3 - Terminal Node Checks
 
    Let last be the index of the final node in the chain.
 
-   Before performing signature validation, the authorization server MAY
-   perform fail-fast checks on the final node.
+   The authorization server performs the following checks on the final
+   node before performing signature validation.  These checks are fail-
+   fast checks over unauthenticated input: failure is sufficient to
+   reject the request, but success does not authenticate the node or the
+   chain.
 
    The authorization server verifies that the final node is intended for
    it:
@@ -1127,7 +1128,10 @@ Table of Contents
 
    For each node, the authorization server:
 
-   1.   Reads iss.
+   1.   Reads iss.  The iss value is untrusted until the node signature
+        is verified.  Before using iss for metadata retrieval, the
+        authorization server MUST apply its normal issuer validation,
+        discovery, allow-list, federation, or local trust policy.
 
    2.   Reads proof.jws.
 
@@ -1139,7 +1143,8 @@ Table of Contents
 
    6.   Verifies that the JWS Protected Header contains alg and kid.
 
-   7.   Resolves the issuer metadata for iss.
+   7.   Resolves the issuer metadata for iss.  The resolved
+        authorization server metadata issuer value MUST match iss.
 
    8.   Obtains the issuer's jwks_uri.
 
@@ -1275,7 +1280,7 @@ Table of Contents
    *  whether each broker is allowed to appear in its position in the
       chain,
 
-   *  the terminal client identified by the earliest client attestation,
+   *  the client identified by the first visible client attestation,
 
    *  the resources identified by resource,
 
@@ -1313,7 +1318,7 @@ Table of Contents
    user
    + authorization server issuer
    + immediate broker
-   + terminal client identity
+   + client identity accepted as the terminal client
    + broker path
    + resource
    + delegation chain hash
