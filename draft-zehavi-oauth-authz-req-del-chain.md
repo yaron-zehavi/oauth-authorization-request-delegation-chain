@@ -774,7 +774,7 @@ cimd
 If the authorization server does not support the `client_ns` value, it MUST
 reject the authorization detail object.
 
-## Step 3 - Terminal Node Preflight
+## Step 3 - Terminal Node Preflight {#delegation-chain-terminal-node-preflight}
 
 Let `last` be the index of the final node in the chain.
 
