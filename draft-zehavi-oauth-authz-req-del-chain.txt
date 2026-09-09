@@ -4,8 +4,8 @@
 
 Web Authorization Protocol                                     Y. Zehavi
 Internet-Draft                             Raiffeisen Bank International
-Intended status: Informational                          8 September 2026
-Expires: 12 March 2027
+Intended status: Informational                          9 September 2026
+Expires: 13 March 2027
 
 
               OAuth Authorization Request Delegation Chain
@@ -64,7 +64,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 March 2027.
+   This Internet-Draft will expire on 13 March 2027.
 
 Copyright Notice
 
@@ -1888,9 +1888,10 @@ Appendix D.  Document History
 
    -01
 
-   *  Added client_roles OAuth Dynamic Client Registration metadata.
+   *  Added client_roles OAuth Dynamic Client Registration metadata with
+      oauth_broker as a client role value.
 
-   *  Defined oauth_broker as a client role value.
+   *  Added IANA request for the client_roles client metadata name.
 
    *  Added broker processing rules for discovering upstream support for
       the oauth_request_delegation_chain authorization details type.
@@ -1899,7 +1900,7 @@ Appendix D.  Document History
       authorization requests that omit a required
       oauth_request_delegation_chain authorization detail.
 
-   *  Added IANA request for the client_roles client metadata name.
+   *  Added mitigation of chain truncation and tampering.
 
    -00
 
