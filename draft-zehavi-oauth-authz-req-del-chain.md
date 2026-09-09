@@ -605,7 +605,6 @@ precedes it. Validation of the hash chain, sequence numbers, and audience
 continuity detects modification, insertion, deletion, reordering, and signature
 substitution within the visible chain.
 
-
 # Creating or Adding to a Delegation Chain
 
 This section defines processing rules for an authorization server or broker creating a new delegation chain or adding a node to an existing chain.
@@ -1478,11 +1477,11 @@ The `proof.jws` value is the compact detached JWS over the UTF-8 bytes of the de
 
 -01
 
-* Added `client_roles` OAuth Dynamic Client Registration metadata.
-* Defined `oauth_broker` as a client role value.
+* Added `client_roles` OAuth Dynamic Client Registration metadata with `oauth_broker` as a client role value.
+* Added IANA request for the `client_roles` client metadata name.
 * Added broker processing rules for discovering upstream support for the `oauth_request_delegation_chain` authorization details type.
 * Added authorization server processing rules for rejecting brokered authorization requests that omit a required `oauth_request_delegation_chain` authorization detail.
-* Added IANA request for the `client_roles` client metadata name.
+* Added mitigation of chain truncation and tampering.
 
 -00
 
