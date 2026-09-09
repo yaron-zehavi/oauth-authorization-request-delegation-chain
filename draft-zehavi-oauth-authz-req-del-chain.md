@@ -69,7 +69,7 @@ informative:
 Brokered OAuth redirect authorization requests involve intermediary authorization servers between a downstream client and the upstream authorization server that obtains user consent and issues tokens.
 Such deployments have security risks because the upstream authorization server sees only the immediate OAuth client and is unaware of the downstream client or intermediary brokers obtaining its response.
 
-This document defines an informative OAuth 2.0 profile for carrying a verifiable, signed authorization request delegation chain as a RAR `authorization_details` object {{RFC9396}}. Each node in the chain is a JSON object signed by the attesting authorization server or broker using detached JWS {{RFC7515}}, attesting its validated client, hash-linked to the previous node, allowing the upstream authorization server to validate the integrity of the visible delegation path and apply policy before issuing tokens.
+This document defines an OAuth 2.0 profile for carrying a verifiable, signed authorization request delegation chain as a RAR `authorization_details` object {{RFC9396}}. Each node in the chain is a JSON object signed by an attesting authorization server using detached JWS {{RFC7515}}, attesting its validated client, hash-linked to the previous node, allowing the upstream authorization server to validate the integrity of the visible delegation path and apply policy before issuing tokens.
 
 --- middle
 
@@ -77,33 +77,33 @@ This document defines an informative OAuth 2.0 profile for carrying a verifiable
 
 OAuth redirect authorization requests increasingly pass through intermediary authorization servers before reaching the authorization server that obtains user consent and issues tokens.
 
-In a brokered redirect authorization flow, a downstream client may initiate an authorization request through one or more brokers. Each broker is both an authorization server for its downstream party, and an OAuth client of the next authorization server or broker in the path.
+In a brokered redirect authorization flow, a downstream client's authorization request is forwarded through one or more brokers. Each broker is both an authorization server for its downstream party, and an OAuth client of the next authorization server in the path.
 
-The upstream authorization server that ultimately processes the redirect authorization request may only have a direct relationship with the immediate broker. Without additional information, it may be unable to determine which downstream client initiated the request or which broker path carried the request.
+The terminal upstream authorization server that ultimately processes the authorization request may only have a direct relationship with the immediate broker. Without additional information, it cannot determine which downstream client initiated the request and which broker path carried the request.
 
-The OAuth Security Topics update {{I-D.ietf-oauth-security-topics-update}} describes a shared consent problem in brokered OAuth deployments: an upstream authorization server can grant consent to a broker without being able to distinguish which downstream client is actually using that brokered access. This can result in consent granted for one downstream client being reused by another downstream client through the same broker.
+Such brokered consent flows are discussed as a risk in OAuth Security Topics update {{I-D.ietf-oauth-security-topics-update}}.
 
-This document addresses that problem for redirect authorization request delegation. It defines a RAR {{RFC9396}} `authorization_details` object that carries a signed delegation chain in the authorization request. The chain allows each authorization server or broker in the redirect path to attest the client it directly recognizes and to preserve the prior delegation evidence.
+This document addresses this risk for redirect authorization request delegation. It defines a RAR {{RFC9396}} `authorization_details` object that carries a signed delegation chain in the authorization request. The chain allows each authorization server in the redirect path to attest the client it directly recognizes and to preserve the prior delegation evidence.
 
-The resulting chain allows the upstream authorization server to make authorization, consent, and policy decisions based on:
+The resulting chain allows any upstream authorization server to evaluate its integrity and perform authorization, consent, and policy decisions based on:
 
+* The integrity of the delegation chain.
 * The immediate broker client,
 * The downstream client that initiated the request,
-* The ordered broker path,
+* The ordered request delegation path,
 * The authorization servers or brokers that attested each hop,
 * The protected resource requested, and
-* The integrity of the delegation chain.
 
 This document defines a RECOMMENDED `authorization_details` type for representing a verifiable signed delegation chain. Each chain node states:
 
 * Who is attesting the node,
 * Who the node is intended for,
 * Which client is being attested for this hop,
-* Which resource is involved,
+* Access to which resource is requested,
 * Where the node appears in the chain, and
 * A cryptographic proof over the node.
 
-Each node is signed by the attesting entity using detached JWS and hash-linked to the previous node. The result is a JSON-structured, schema-validatable, tamper-resistant, verifiable signed delegation chain for use during redirect authorization request processing.
+Each node is signed by the attesting entity using detached JWS and hash-linked to the previous node. The result is a JSON-structured, tamper-resistant, verifiable signed delegation chain for redirect authorization request processing.
 
 This profile is intentionally narrow. It does not define a new grant type, token format, endpoint, token response parameter, or error code. It defines only a proposed RAR {{RFC9396}} `authorization_details` type and processing rules for redirect authorization requests.
 
@@ -122,10 +122,10 @@ OpenID Federation primarily addresses entity trust and metadata establishment. I
 * Which trust anchor or federation authority vouches for this entity?
 * Which keys should be used to verify statements from this entity?
 
-This document addresses transaction-specific authorization request delegation path preservation. It can answer questions such as:
+This document addresses the authrization request's specific delegation path. It can answer questions such as:
 
 * Which downstream client initiated this redirect authorization request?
-* Which brokers carried the request?
+* Which brokers carried it?
 * Which entity attested each hop?
 * Was the visible authorization request delegation chain reordered, shortened at the tail, altered in the middle, or modified?
 * Is the visible first node acceptable under local policy?
@@ -249,7 +249,7 @@ When `as-domain-1` receives the authorization request, it may only directly reco
 
 If the upstream authorization server binds consent only to the immediate broker, then consent granted for one downstream client can be reused for a different downstream client that reaches the upstream authorization server through the same broker. This is the shared consent problem described in {{I-D.ietf-oauth-security-topics-update}}.
 
-This document allows each broker or authorization server in the redirect path to add a signed delegation node:
+This document allows each intermediate authorization server in the redirect path to add a signed delegation node:
 
 ~~~ text
 Hop 1: broker-a -> broker-b
@@ -270,11 +270,11 @@ resource = https://api-domain-1.example.com
 
 The `aud` value in the delegation chain identifies only the next authorization server.
 
-By validating the signed and hash-linked chain, the upstream authorization server can bind consent and policy to the full redirect delegation path rather than only to the immediate broker.
+By validating the signed and hash-linked chain, any upstream authorization server can bind consent and policy to the entire redirect delegation path up to itself, rather than only to the immediate client which might not be the terminal client.
 
 # Protocol Overview
 
-A downstream client initiates an OAuth authorization request through one or more brokers. Each authorization server or broker can create or append a signed node to the delegation chain.
+A downstream client initiates an OAuth authorization request which is forwarded to other authorization servers. Each authorization server or broker can create or append a signed node to the delegation chain.
 
 ~~~ ascii-art
 +------------+       +----------+       +----------+       +----------+       +-------------+
@@ -300,13 +300,13 @@ A downstream client initiates an OAuth authorization request through one or more
 
 Figure: Brokered authorization request using an OAuth Authorization Request Delegation Chain
 
-The upstream authorization server validates the final node from the broker it directly knows, then walks the prior signed nodes to identify the terminal client and the full broker path.
+The upstream authorization server validates the final node from the broker it directly knows, then walks the prior signed nodes to validate the full delegation path and identify the terminal client.
 
 # OAuth Broker Client Metadata
 
-This document defines client metadata that allows an authorization server to identify that a registered OAuth client is expected to act as an OAuth broker.
+This document defines client metadata that allows an authorization server, when acting as a client, to identify itself as an OAuth broker.
 
-The following client metadata member is defined:
+The following client metadata attribute is defined:
 
 ~~~ json
 {
@@ -315,13 +315,9 @@ The following client metadata member is defined:
 ~~~
 
 `client_roles`
-: OPTIONAL. JSON array of strings identifying roles the OAuth client is expected to perform when interacting with the authorization server. The value `oauth_broker` indicates that the client may act as an intermediary between the authorization server and one or more downstream clients, applications, agents, relying parties, resource servers, or trust domains.
+: OPTIONAL. JSON array of strings identifying roles the OAuth client is expected to perform when interacting with the authorization server. The value `oauth_broker` indicates that the client may act as an intermediary between the authorization server and one or more downstream clients.
 
-An authorization server MAY use the `client_roles` metadata value during client registration, dynamic client registration {{RFC7591}}, client metadata document processing, federation metadata processing, or local onboarding.
-
-A client metadata value of `oauth_broker` is a statement about the expected role of the client. It does not by itself establish trust in the client, any downstream client, or any brokered delegation path.
-
-An authorization server MUST NOT rely on self-asserted `client_roles` metadata unless the metadata is obtained through a trusted registration, software statement, federation trust chain, administrative configuration, contractual onboarding process, or other trusted mechanism.
+A client metadata value of `oauth_broker` is a statement a client makes about its expected role. It does not by itself establish trust in the client, any downstream client, or any brokered delegation path.
 
 An authorization server MAY also classify a client as an OAuth broker using local policy, even when the `client_roles` metadata member is absent.
 
@@ -359,11 +355,11 @@ The `chain` member is a JSON array. JSON arrays are ordered by definition {{RFC8
 
 # Discovering Upstream Support
 
-An OAuth broker that intends to forward a brokered redirect authorization request to an upstream authorization server SHOULD determine whether the upstream authorization server supports the `oauth_request_delegation_chain` authorization details type before sending the authorization request.
+An authorization server acting as broker that intends to forward an authorization request to an upstream authorization server SHOULD determine whether the upstream authorization server supports the `oauth_request_delegation_chain` authorization details type before sending the authorization request.
 
 The broker SHOULD retrieve the upstream authorization server metadata according to {{RFC8414}}.
 
-If the upstream authorization server metadata contains the `authorization_details_types_supported` metadata member defined by {{RFC9396}}, and that member contains the value `oauth_request_delegation_chain`, the broker SHOULD opt into this mechanism by including an `authorization_details` object of type `oauth_request_delegation_chain` in the authorization request.
+If the upstream authorization server metadata publishes in `authorization_details_types_supported` support for the `oauth_request_delegation_chain` RAR type, the broker SHOULD opt into this mechanism by including an `authorization_details` object of type `oauth_request_delegation_chain` in the authorization request.
 
 For example, an upstream authorization server can advertise support as follows:
 
@@ -379,7 +375,7 @@ For example, an upstream authorization server can advertise support as follows:
 }
 ~~~
 
-A broker that discovers upstream support and is forwarding a brokered authorization request SHOULD either:
+A broker that discovers upstream support SHOULD either:
 
 * create a new `oauth_request_delegation_chain` authorization detail object, if no chain is already present; or
 * validate and extend the existing chain, if a chain is already present.
@@ -414,12 +410,10 @@ A delegation node is a JSON object with the following members.
 | `client_id` | Yes | Client attested by this node. |
 | `client_name` | No | Human-readable display name. Not a security identifier. |
 | `resource` | No | Resource indicators or protected resource identifiers relevant to the authorization request. |
+| `omit_chain` | No | Whether a broker is allowed to omit the delegation chain when forwarding to an upstream authorization server that does not support this profile. Values are `forbidden` and `allowed`; default is `forbidden`. |
 | `proof` | Yes | Cryptographic proof object. |
 
-Additional members MAY be included only if their signing-payload representation
-is defined by this document, a future specification, or a mutually understood
-extension. A receiver MUST reject unsupported extension members unless local
-policy explicitly allows them to be ignored.
+Additional members MAY be included only if their signing-payload representation is defined by this document, a future specification, or a mutually understood extension. A receiver MUST reject unsupported extension members unless local policy explicitly allows them to be ignored.
 
 The stable security identifier for an attested client depends on the `client_ns` value.
 
@@ -436,6 +430,7 @@ client_id
 ~~~
 
 For `client_ns` value `as`, the applicable AS issuer context is the `iss` value of the node that attests the client.
+
 The `client_name` value is display-only and MUST NOT be used as a security identifier.
 
 # Proof Object
@@ -483,6 +478,38 @@ iss -> authorization server metadata -> jwks_uri -> JWK selected by kid
 
 Because brokers in this profile are also authorization servers, a broker is expected to publish authorization server metadata {{RFC8414}} and a `jwks_uri`.
 
+## Upstream Support Failure
+
+If a broker receives an authorization request containing an `oauth_request_delegation_chain` authorization detail object and determines that the next upstream authorization server does not support this profile, the broker MUST NOT silently discard the delegation chain.
+
+The broker MUST either reject the transaction, use another trusted mechanism to preserve the delegation context, or forward the request without the chain only when doing so is permitted by local policy and by the signed chain requirement.
+
+A delegation node MAY contain the following member:
+
+`omit_chain`
+: OPTIONAL. String indicating whether a broker is allowed to forward the
+authorization request without the delegation chain if the next upstream
+authorization server does not support this profile. Defined values are
+`forbidden` and `allowed`. If omitted, the default value is `forbidden`.
+
+If any validated node contains:
+
+~~~ json
+"omit_chain": "forbidden"
+~~~
+
+or omits `omit_chain`, then a broker that cannot forward the delegation chain to the next upstream authorization server, and cannot preserve equivalent delegation context by another trusted mechanism, MUST reject the transaction.
+
+If every validated node contains:
+
+~~~ json
+"omit_chain": "allowed"
+~~~
+
+then the broker MAY forward the authorization request without the delegation chain, subject to local policy.
+
+A broker MUST NOT silently discard a delegation chain. Forwarding without the chain is an explicit degradation of delegation evidence and is permitted only when allowed by the validated chain and by local policy.
+
 # Attesting a Client
 
 Attesting a client means:
@@ -521,7 +548,7 @@ Each node is signed using JSON Web Signature (JWS) {{RFC7515}} with a detached p
 
 The use of JWS provides standard JOSE header handling, including `alg` and `kid`, while preserving a JSON wire format that can be validated using typed schemas before cryptographic verification.
 
-## Delegation Chain Signing Payload Version 1
+## Delegation Chain Signing Payload
 
 The detached JWS payload is a UTF-8 string formed by joining name-value lines with line feed `\n`.
 
@@ -543,17 +570,14 @@ client_ns
 client_id
 client_name
 resource
+omit_chain
 ~~~
 
 The `proof` member is excluded.
 
-Members not included in this signing-payload definition are not protected by the
-node signature. Security-relevant extensions therefore MUST define how they are
-included in the signing payload, or receivers MUST reject them.
+Members not included in this signing-payload definition are not protected by the node signature. Security-relevant extensions therefore MUST define how they are included in the signing payload, or receivers MUST reject them.
 
-Array values are serialized by joining each array element's JSON string
-serialization, in array order, with a comma character. No extra whitespace is
-inserted.
+Array values are serialized by joining each array element's JSON string serialization, in array order, with a comma character. No extra whitespace is inserted.
 
 For example:
 
@@ -687,17 +711,13 @@ If extending an existing chain, the attester sets `n` to the previous node's `n`
 ## Step 5 - Add Optional Display or Resource Information
 
 The attester MAY include `client_name` for user interface purposes.
-
 The attester MAY include `resource` to identify intended protected resources.
-
 The `client_name` value MUST NOT be used as a security identifier.
-
 Additional claims MAY be added as parties see fit, subject to local policy or future specifications.
 
 ## Step 6 - Sign the Node
 
 The attester constructs the detached JWS payload as described in {{signature-input}}.
-
 The attester creates a JWS Protected Header containing at least:
 
 ~~~ json
@@ -766,8 +786,7 @@ extension members.
 
 ## Step 2 - Client Namespace Validation
 
-The authorization server verifies that each node contains a supported
-`client_ns` value.
+The authorization server verifies that each node contains a supported `client_ns` value.
 
 This profile defines:
 
@@ -776,8 +795,7 @@ as
 cimd
 ~~~
 
-If the authorization server does not support the `client_ns` value, it MUST
-reject the authorization detail object.
+If the authorization server does not support the `client_ns` value, it MUST reject the authorization detail object.
 
 ## Step 3 - Terminal Node Checks {#delegation-chain-terminal-node-checks}
 
@@ -849,13 +867,11 @@ issuer validation, discovery, allow-list, federation, or local trust policy.
 8. Obtains the issuer's `jwks_uri`.
 9. Fetches the issuer's JWK Set.
 10. Selects a key using the JWS Protected Header `kid`.
-11. Constructs the deterministic detached JWS payload for the node by
-    serializing the node excluding the `proof` member.
+11. Constructs the deterministic detached JWS payload for the node by serializing the node excluding the `proof` member.
 12. Verifies the detached JWS signature over that payload according to
     {{RFC7515}}.
 
-If a signature cannot be verified, the authorization server MUST reject the
-chain.
+If a signature cannot be verified, the authorization server MUST reject the chain.
 
 After signature validation succeeds, the authorization server treats the signed
 members of each node as authenticated statements by that node's `iss`.
@@ -866,9 +882,7 @@ are then authenticated because the final node's signature covers the same
 
 ## Step 5 - Backward Chain Validation
 
-The authorization server validates the chain from the final node toward the
-first node.
-
+The authorization server validates the chain from the final node toward the first node.
 For every `i` from `last` down to `1`, the authorization server verifies:
 
 ~~~ text
@@ -877,16 +891,13 @@ chain[i - 1].aud == chain[i].iss
 chain[i].n == chain[i - 1].n + 1
 ~~~
 
-where `event_hash` is computed over the previous node's deterministic detached
-JWS payload and its `proof.jws` value.
+where `event_hash` is computed over the previous node's deterministic detached JWS payload and its `proof.jws` value.
 
 If any hash comparison fails, the authorization server MUST reject the chain.
 
-If any audience-continuity check fails, the authorization server MUST reject the
-chain.
+If any audience-continuity check fails, the authorization server MUST reject the chain.
 
-If any sequence-number check fails, the authorization server MUST reject the
-chain.
+If any sequence-number check fails, the authorization server MUST reject the chain.
 
 The authorization server then verifies the first node:
 
@@ -897,8 +908,7 @@ chain[0].p_hash == null
 
 If either check fails, the authorization server MUST reject the chain.
 
-The audience-continuity check ensures that every hop intentionally delegated to
-the next hop in the chain:
+The audience-continuity check ensures that every hop intentionally delegated to the next hop in the chain:
 
 ~~~ text
 chain[i - 1].aud == chain[i].iss
@@ -1128,8 +1138,7 @@ deployment-specific extensions and validate them according to local policy.
 
 Authorization servers MUST NOT use `client_name` as a security identifier.
 
-The stable security identifier depends on `client_ns`, `client_id`, and the
-applicable issuer or namespace context.
+The stable security identifier depends on `client_ns`, `client_id`, and the applicable issuer or namespace context.
 
 ## Trust in Attesters
 
