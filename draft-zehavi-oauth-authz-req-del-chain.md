@@ -353,38 +353,7 @@ A delegated authorization request MAY include an authorization detail object of 
 
 The `chain` member is a JSON array. JSON arrays are ordered by definition {{RFC8259}}. The explicit `n` value is nevertheless included to make event order unambiguous across storage, transformation, validation, and partial processing.
 
-# Discovering Upstream Support
-
-An authorization server acting as broker that intends to forward an authorization request to an upstream authorization server SHOULD determine whether the upstream authorization server supports the `oauth_request_delegation_chain` authorization details type before sending the authorization request.
-
-The broker SHOULD retrieve the upstream authorization server metadata according to {{RFC8414}}.
-
-If the upstream authorization server metadata publishes in `authorization_details_types_supported` support for the `oauth_request_delegation_chain` RAR type, the broker SHOULD opt into this mechanism by including an `authorization_details` object of type `oauth_request_delegation_chain` in the authorization request.
-
-For example, an upstream authorization server can advertise support as follows:
-
-~~~ json
-{
-  "issuer": "https://as-domain-1.example.com",
-  "authorization_endpoint": "https://as-domain-1.example.com/authorize",
-  "token_endpoint": "https://as-domain-1.example.com/token",
-  "jwks_uri": "https://as-domain-1.example.com/jwks.json",
-  "authorization_details_types_supported": [
-    "oauth_request_delegation_chain"
-  ]
-}
-~~~
-
-A broker that discovers upstream support SHOULD either:
-
-* create a new `oauth_request_delegation_chain` authorization detail object, if no chain is already present; or
-* validate and extend the existing chain, if a chain is already present.
-
-A broker MAY still use this profile with an upstream authorization server when support is established by other means, such as bilateral configuration, federation metadata, contractual onboarding, or local policy.
-
-If a broker is unable to determine whether the upstream authorization server supports this profile, the broker SHOULD apply local policy. Local policy can include forwarding the request without this authorization detail, aborting the transaction, or using an alternative delegation mechanism.
-
-# Delegation Chain Object
+## Delegation Chain Object
 
 The delegation chain authorization details object has the following members.
 
@@ -395,7 +364,7 @@ The delegation chain authorization details object has the following members.
 
 The `chain` array MUST contain one or more delegation nodes.
 
-# Delegation Node
+## Delegation Node
 
 A delegation node is a JSON object with the following members.
 
@@ -433,7 +402,7 @@ For `client_ns` value `as`, the applicable AS issuer context is the `iss` value 
 
 The `client_name` value is display-only and MUST NOT be used as a security identifier.
 
-# Proof Object
+## Proof Object
 
 The `proof` object contains a detached JWS compact serialization.
 
@@ -478,38 +447,6 @@ iss -> authorization server metadata -> jwks_uri -> JWK selected by kid
 
 Because brokers in this profile are also authorization servers, a broker is expected to publish authorization server metadata {{RFC8414}} and a `jwks_uri`.
 
-## Upstream Support Failure
-
-If a broker receives an authorization request containing an `oauth_request_delegation_chain` authorization detail object and determines that the next upstream authorization server does not support this profile, the broker MUST NOT silently discard the delegation chain.
-
-The broker MUST either reject the transaction, use another trusted mechanism to preserve the delegation context, or forward the request without the chain only when doing so is permitted by local policy and by the signed chain requirement.
-
-A delegation node MAY contain the following member:
-
-`omit_chain`
-: OPTIONAL. String indicating whether a broker is allowed to forward the
-authorization request without the delegation chain if the next upstream
-authorization server does not support this profile. Defined values are
-`forbidden` and `allowed`. If omitted, the default value is `forbidden`.
-
-If any validated node contains:
-
-~~~ json
-"omit_chain": "forbidden"
-~~~
-
-or omits `omit_chain`, then a broker that cannot forward the delegation chain to the next upstream authorization server, and cannot preserve equivalent delegation context by another trusted mechanism, MUST reject the transaction.
-
-If every validated node contains:
-
-~~~ json
-"omit_chain": "allowed"
-~~~
-
-then the broker MAY forward the authorization request without the delegation chain, subject to local policy.
-
-A broker MUST NOT silently discard a delegation chain. Forwarding without the chain is an explicit degradation of delegation evidence and is permitted only when allowed by the validated chain and by local policy.
-
 # Attesting a Client
 
 Attesting a client means:
@@ -540,7 +477,7 @@ is the delegated client for this hop.
 
 The upstream authorization server can then validate prior nodes to discover the terminal downstream client.
 
-# Signature Input {#signature-input}
+## Signature Input {#signature-input}
 
 The wire format of a delegation node is JSON. The node is not a JWT and MUST NOT be processed as a JWT claims set.
 
@@ -604,7 +541,7 @@ protected-header || "." || "" || "." || signature
 
 Future specifications MAY define alternative signing-payload schemes. Such specifications MUST identify the scheme unambiguously.
 
-# Hash Chain
+## Hash Chain
 
 Each delegation node is hash-linked to the previous signed node.
 
@@ -629,11 +566,11 @@ precedes it. Validation of the hash chain, sequence numbers, and audience
 continuity detects modification, insertion, deletion, reordering, and signature
 substitution within the visible chain.
 
-# Creating or Adding to a Delegation Chain
+## Creating or Adding to a Delegation Chain
 
 This section defines processing rules for an authorization server or broker creating a new delegation chain or adding a node to an existing chain.
 
-## Step 1 - Determine the Attester
+### Step 1 - Determine the Attester
 
 The attester sets `iss` to its issuer identifier:
 
@@ -645,7 +582,7 @@ The `iss` value MUST identify the entity signing the node.
 
 The `iss` value SHOULD resolve to authorization server metadata containing a `jwks_uri` {{RFC8414}}.
 
-## Step 2 - Determine the Audience
+### Step 2 - Determine the Audience
 
 The attester sets `aud` to the intended authorization server or broker-AS recipient of the node.
 
@@ -663,7 +600,7 @@ For the final upstream authorization server:
 
 The `aud` value MUST NOT be used to identify the protected resource API. Protected resources are identified using the `resource` member.
 
-## Step 3 - Determine the Attested Client
+### Step 3 - Determine the Attested Client
 
 The attester sets:
 
@@ -697,7 +634,7 @@ The authorization server can use the client metadata document to obtain client m
 
 The mechanism for resolving metadata from `client_ns` and `client_id` is determined by local policy, federation metadata, or client metadata mechanisms.
 
-## Step 4 - Set the Position
+### Step 4 - Set the Position
 
 If creating a new chain:
 
@@ -708,14 +645,14 @@ If creating a new chain:
 
 If extending an existing chain, the attester sets `n` to the previous node's `n` plus one and sets `p_hash` to `event_hash(previous_node)`.
 
-## Step 5 - Add Optional Display or Resource Information
+### Step 5 - Add Optional Display or Resource Information
 
 The attester MAY include `client_name` for user interface purposes.
 The attester MAY include `resource` to identify intended protected resources.
 The `client_name` value MUST NOT be used as a security identifier.
 Additional claims MAY be added as parties see fit, subject to local policy or future specifications.
 
-## Step 6 - Sign the Node
+### Step 6 - Sign the Node
 
 The attester constructs the detached JWS payload as described in {{signature-input}}.
 The attester creates a JWS Protected Header containing at least:
@@ -739,9 +676,72 @@ The attester places the compact detached JWS in `proof.jws`:
 
 The JWS payload segment MUST be empty in the compact serialization, because the payload is detached and represented by the delegation node JSON object itself.
 
-## Step 7 - Forward the Chain
+### Step 7 - Forward the Chain
 
 The attester includes the updated chain in an `authorization_details` object with type `oauth_request_delegation_chain`.
+
+# Discovering Upstream Support
+
+An authorization server acting as broker that intends to forward an authorization request to an upstream authorization server SHOULD determine whether the upstream authorization server supports the `oauth_request_delegation_chain` authorization details type before sending the authorization request.
+
+The broker SHOULD retrieve the upstream authorization server metadata according to {{RFC8414}}.
+
+If the upstream authorization server metadata publishes in `authorization_details_types_supported` support for the `oauth_request_delegation_chain` RAR type, the broker SHOULD opt into this mechanism by including an `authorization_details` object of type `oauth_request_delegation_chain` in the authorization request.
+
+For example, an upstream authorization server can advertise support as follows:
+
+~~~ json
+{
+  "issuer": "https://as-domain-1.example.com",
+  "authorization_endpoint": "https://as-domain-1.example.com/authorize",
+  "token_endpoint": "https://as-domain-1.example.com/token",
+  "jwks_uri": "https://as-domain-1.example.com/jwks.json",
+  "authorization_details_types_supported": [
+    "oauth_request_delegation_chain"
+  ]
+}
+~~~
+
+A broker that discovers upstream support SHOULD either:
+
+* create a new `oauth_request_delegation_chain` authorization detail object, if no chain is already present; or
+* validate and extend the existing chain, if a chain is already present.
+
+A broker MAY still use this profile with an upstream authorization server when support is established by other means, such as bilateral configuration, federation metadata, contractual onboarding, or local policy.
+
+If a broker is unable to determine whether the upstream authorization server supports this profile, the broker SHOULD apply local policy. Local policy can include forwarding the request without this authorization detail, aborting the transaction, or using an alternative delegation mechanism.
+
+## Upstream Support Failure
+
+If a broker receives an authorization request containing an `oauth_request_delegation_chain` authorization detail object and determines that the next upstream authorization server does not support this profile, the broker MUST NOT silently discard the delegation chain.
+
+The broker MUST either reject the transaction, use another trusted mechanism to preserve the delegation context, or forward the request without the chain only when doing so is permitted by local policy and by the signed chain requirement.
+
+A delegation node MAY contain the following member:
+
+`omit_chain`
+: OPTIONAL. String indicating whether a broker is allowed to forward the
+authorization request without the delegation chain if the next upstream
+authorization server does not support this profile. Defined values are
+`forbidden` and `allowed`. If omitted, the default value is `forbidden`.
+
+If any validated node contains:
+
+~~~ json
+"omit_chain": "forbidden"
+~~~
+
+or omits `omit_chain`, then a broker that cannot forward the delegation chain to the next upstream authorization server, and cannot preserve equivalent delegation context by another trusted mechanism, MUST reject the transaction.
+
+If every validated node contains:
+
+~~~ json
+"omit_chain": "allowed"
+~~~
+
+then the broker MAY forward the authorization request without the delegation chain, subject to local policy.
+
+A broker MUST NOT silently discard a delegation chain. Forwarding without the chain is an explicit degradation of delegation evidence and is permitted only when allowed by the validated chain and by local policy.
 
 # Validating a Delegation Chain
 
