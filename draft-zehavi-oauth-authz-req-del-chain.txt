@@ -4,8 +4,8 @@
 
 Web Authorization Protocol                                     Y. Zehavi
 Internet-Draft                             Raiffeisen Bank International
-Intended status: Informational                          9 September 2026
-Expires: 13 March 2027
+Intended status: Informational                         10 September 2026
+Expires: 14 March 2027
 
 
               OAuth Authorization Request Delegation Chain
@@ -64,7 +64,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 March 2027.
+   This Internet-Draft will expire on 14 March 2027.
 
 Copyright Notice
 
@@ -93,50 +93,50 @@ Table of Contents
    4.  Protocol Overview
    5.  OAuth Broker Client Metadata
    6.  Authorization Details Type
-   7.  Discovering Upstream Support
-   8.  Delegation Chain Object
-   9.  Delegation Node
-   10. Proof Object
-     10.1.  Upstream Support Failure
-   11. Attesting a Client
-   12. Signature Input
-     12.1.  Delegation Chain Signing Payload
-   13. Hash Chain
-   14. Creating or Adding to a Delegation Chain
-     14.1.  Step 1 - Determine the Attester
-     14.2.  Step 2 - Determine the Audience
-     14.3.  Step 3 - Determine the Attested Client
-     14.4.  Step 4 - Set the Position
-     14.5.  Step 5 - Add Optional Display or Resource Information
-     14.6.  Step 6 - Sign the Node
-     14.7.  Step 7 - Forward the Chain
-   15. Validating a Delegation Chain
-     15.1.  Step 1 - Schema Validation
-     15.2.  Step 2 - Client Namespace Validation
-     15.3.  Step 3 - Terminal Node Checks
-     15.4.  Step 4 - Signature Validation
-     15.5.  Step 5 - Backward Chain Validation
-     15.6.  Step 6 - Resource Consistency Validation
-     15.7.  Step 7 - Delegation Relationship Validation
-     15.8.  Step 8 - Policy Validation
-   16. Consent Binding
-   17. Authorization Server Considerations
-   18. Security Considerations
-     18.1.  Chain Integrity
-     18.2.  Truncation and Re-origination
-     18.3.  Replay
-     18.4.  Display Names
-     18.5.  Trust in Attesters
-     18.6.  Trust in Broker Client Metadata
-     18.7.  Metadata Resolution
-     18.8.  Immediate Client Authentication
-     18.9.  Privacy
-   19. IANA Considerations
-     19.1.  OAuth Dynamic Client Registration Metadata Registration
-     19.2.  OAuth Authorization Details Type
-   20. References
-     20.1.  Normative References
-     20.2.  Informative References
+     6.1.  Delegation Chain Object
+     6.2.  Delegation Node
+     6.3.  Proof Object
+   7.  Attesting a Client
+     7.1.  Signature Input
+     7.2.  Delegation Chain Signing Payload
+     7.3.  Hash Chain
+     7.4.  Creating or Adding to a Delegation Chain
+       7.4.1.  Step 1 - Determine the Attester
+       7.4.2.  Step 2 - Determine the Audience
+       7.4.3.  Step 3 - Determine the Attested Client
+       7.4.4.  Step 4 - Set the Position
+       7.4.5.  Step 5 - Add Optional Display or Resource Information
+       7.4.6.  Step 6 - Sign the Node
+       7.4.7.  Step 7 - Forward the Chain
+   8.  Discovering Upstream Support
+     8.1.  Upstream Support Failure
+   9.  Validating a Delegation Chain
+     9.1.  Step 1 - Schema Validation
+     9.2.  Step 2 - Client Namespace Validation
+     9.3.  Step 3 - Terminal Node Checks
+     9.4.  Step 4 - Signature Validation
+     9.5.  Step 5 - Backward Chain Validation
+     9.6.  Step 6 - Resource Consistency Validation
+     9.7.  Step 7 - Delegation Relationship Validation
+     9.8.  Step 8 - Policy Validation
+   10. Consent Binding
+   11. Authorization Server Considerations
+   12. Security Considerations
+     12.1.  Chain Integrity
+     12.2.  Truncation and Re-origination
+     12.3.  Replay
+     12.4.  Display Names
+     12.5.  Trust in Attesters
+     12.6.  Trust in Broker Client Metadata
+     12.7.  Metadata Resolution
+     12.8.  Immediate Client Authentication
+     12.9.  Privacy
+   13. IANA Considerations
+     13.1.  OAuth Dynamic Client Registration Metadata Registration
+     13.2.  OAuth Authorization Details Type
+   14. References
+     14.1.  Normative References
+     14.2.  Informative References
    Appendix A.  Brokered OAuth Example Without CIMD
      A.1.  Full Authorization Details Object
      A.2.  Interpretation
@@ -584,56 +584,7 @@ Table of Contents
    to make event order unambiguous across storage, transformation,
    validation, and partial processing.
 
-7.  Discovering Upstream Support
-
-   An authorization server acting as broker that intends to forward an
-   authorization request to an upstream authorization server SHOULD
-   determine whether the upstream authorization server supports the
-   oauth_request_delegation_chain authorization details type before
-   sending the authorization request.
-
-   The broker SHOULD retrieve the upstream authorization server metadata
-   according to [RFC8414].
-
-   If the upstream authorization server metadata publishes in
-   authorization_details_types_supported support for the
-   oauth_request_delegation_chain RAR type, the broker SHOULD opt into
-   this mechanism by including an authorization_details object of type
-   oauth_request_delegation_chain in the authorization request.
-
-   For example, an upstream authorization server can advertise support
-   as follows:
-
-   {
-     "issuer": "https://as-domain-1.example.com",
-     "authorization_endpoint": "https://as-domain-1.example.com/authorize",
-     "token_endpoint": "https://as-domain-1.example.com/token",
-     "jwks_uri": "https://as-domain-1.example.com/jwks.json",
-     "authorization_details_types_supported": [
-       "oauth_request_delegation_chain"
-     ]
-   }
-
-   A broker that discovers upstream support SHOULD either:
-
-   *  create a new oauth_request_delegation_chain authorization detail
-      object, if no chain is already present; or
-
-   *  validate and extend the existing chain, if a chain is already
-      present.
-
-   A broker MAY still use this profile with an upstream authorization
-   server when support is established by other means, such as bilateral
-   configuration, federation metadata, contractual onboarding, or local
-   policy.
-
-   If a broker is unable to determine whether the upstream authorization
-   server supports this profile, the broker SHOULD apply local policy.
-   Local policy can include forwarding the request without this
-   authorization detail, aborting the transaction, or using an
-   alternative delegation mechanism.
-
-8.  Delegation Chain Object
+6.1.  Delegation Chain Object
 
    The delegation chain authorization details object has the following
    members.
@@ -652,7 +603,7 @@ Table of Contents
 
    The chain array MUST contain one or more delegation nodes.
 
-9.  Delegation Node
+6.2.  Delegation Node
 
    A delegation node is a JSON object with the following members.
 
@@ -724,7 +675,7 @@ Table of Contents
    The client_name value is display-only and MUST NOT be used as a
    security identifier.
 
-10.  Proof Object
+6.3.  Proof Object
 
    The proof object contains a detached JWS compact serialization.
 
@@ -772,49 +723,7 @@ Table of Contents
    broker is expected to publish authorization server metadata [RFC8414]
    and a jwks_uri.
 
-10.1.  Upstream Support Failure
-
-   If a broker receives an authorization request containing an
-   oauth_request_delegation_chain authorization detail object and
-   determines that the next upstream authorization server does not
-   support this profile, the broker MUST NOT silently discard the
-   delegation chain.
-
-   The broker MUST either reject the transaction, use another trusted
-   mechanism to preserve the delegation context, or forward the request
-   without the chain only when doing so is permitted by local policy and
-   by the signed chain requirement.
-
-   A delegation node MAY contain the following member:
-
-   omit_chain  OPTIONAL.  String indicating whether a broker is allowed
-      to forward the authorization request without the delegation chain
-      if the next upstream authorization server does not support this
-      profile.  Defined values are forbidden and allowed.  If omitted,
-      the default value is forbidden.
-
-   If any validated node contains:
-
-   "omit_chain": "forbidden"
-
-   or omits omit_chain, then a broker that cannot forward the delegation
-   chain to the next upstream authorization server, and cannot preserve
-   equivalent delegation context by another trusted mechanism, MUST
-   reject the transaction.
-
-   If every validated node contains:
-
-   "omit_chain": "allowed"
-
-   then the broker MAY forward the authorization request without the
-   delegation chain, subject to local policy.
-
-   A broker MUST NOT silently discard a delegation chain.  Forwarding
-   without the chain is an explicit degradation of delegation evidence
-   and is permitted only when allowed by the validated chain and by
-   local policy.
-
-11.  Attesting a Client
+7.  Attesting a Client
 
    Attesting a client means:
 
@@ -839,7 +748,7 @@ Table of Contents
    The upstream authorization server can then validate prior nodes to
    discover the terminal downstream client.
 
-12.  Signature Input
+7.1.  Signature Input
 
    The wire format of a delegation node is JSON.  The node is not a JWT
    and MUST NOT be processed as a JWT claims set.
@@ -854,7 +763,7 @@ Table of Contents
    and kid, while preserving a JSON wire format that can be validated
    using typed schemas before cryptographic verification.
 
-12.1.  Delegation Chain Signing Payload
+7.2.  Delegation Chain Signing Payload
 
    The detached JWS payload is a UTF-8 string formed by joining name-
    value lines with line feed \n.
@@ -914,7 +823,7 @@ Table of Contents
    Future specifications MAY define alternative signing-payload schemes.
    Such specifications MUST identify the scheme unambiguously.
 
-13.  Hash Chain
+7.3.  Hash Chain
 
    Each delegation node is hash-linked to the previous signed node.
 
@@ -936,13 +845,13 @@ Table of Contents
    deletion, reordering, and signature substitution within the visible
    chain.
 
-14.  Creating or Adding to a Delegation Chain
+7.4.  Creating or Adding to a Delegation Chain
 
    This section defines processing rules for an authorization server or
    broker creating a new delegation chain or adding a node to an
    existing chain.
 
-14.1.  Step 1 - Determine the Attester
+7.4.1.  Step 1 - Determine the Attester
 
    The attester sets iss to its issuer identifier:
 
@@ -953,7 +862,7 @@ Table of Contents
    The iss value SHOULD resolve to authorization server metadata
    containing a jwks_uri [RFC8414].
 
-14.2.  Step 2 - Determine the Audience
+7.4.2.  Step 2 - Determine the Audience
 
    The attester sets aud to the intended authorization server or broker-
    AS recipient of the node.
@@ -969,7 +878,7 @@ Table of Contents
    The aud value MUST NOT be used to identify the protected resource
    API.  Protected resources are identified using the resource member.
 
-14.3.  Step 3 - Determine the Attested Client
+7.4.3.  Step 3 - Determine the Attested Client
 
    The attester sets:
 
@@ -1002,7 +911,7 @@ Table of Contents
    determined by local policy, federation metadata, or client metadata
    mechanisms.
 
-14.4.  Step 4 - Set the Position
+7.4.4.  Step 4 - Set the Position
 
    If creating a new chain:
 
@@ -1012,7 +921,7 @@ Table of Contents
    If extending an existing chain, the attester sets n to the previous
    node's n plus one and sets p_hash to event_hash(previous_node).
 
-14.5.  Step 5 - Add Optional Display or Resource Information
+7.4.5.  Step 5 - Add Optional Display or Resource Information
 
    The attester MAY include client_name for user interface purposes.
    The attester MAY include resource to identify intended protected
@@ -1020,10 +929,10 @@ Table of Contents
    identifier.  Additional claims MAY be added as parties see fit,
    subject to local policy or future specifications.
 
-14.6.  Step 6 - Sign the Node
+7.4.6.  Step 6 - Sign the Node
 
    The attester constructs the detached JWS payload as described in
-   Section 12.  The attester creates a JWS Protected Header containing
+   Section 7.1.  The attester creates a JWS Protected Header containing
    at least:
 
    {
@@ -1044,12 +953,103 @@ Table of Contents
    because the payload is detached and represented by the delegation
    node JSON object itself.
 
-14.7.  Step 7 - Forward the Chain
+7.4.7.  Step 7 - Forward the Chain
 
    The attester includes the updated chain in an authorization_details
    object with type oauth_request_delegation_chain.
 
-15.  Validating a Delegation Chain
+8.  Discovering Upstream Support
+
+   An authorization server acting as broker that intends to forward an
+   authorization request to an upstream authorization server SHOULD
+   determine whether the upstream authorization server supports the
+   oauth_request_delegation_chain authorization details type before
+   sending the authorization request.
+
+   The broker SHOULD retrieve the upstream authorization server metadata
+   according to [RFC8414].
+
+   If the upstream authorization server metadata publishes in
+   authorization_details_types_supported support for the
+   oauth_request_delegation_chain RAR type, the broker SHOULD opt into
+   this mechanism by including an authorization_details object of type
+   oauth_request_delegation_chain in the authorization request.
+
+   For example, an upstream authorization server can advertise support
+   as follows:
+
+   {
+     "issuer": "https://as-domain-1.example.com",
+     "authorization_endpoint": "https://as-domain-1.example.com/authorize",
+     "token_endpoint": "https://as-domain-1.example.com/token",
+     "jwks_uri": "https://as-domain-1.example.com/jwks.json",
+     "authorization_details_types_supported": [
+       "oauth_request_delegation_chain"
+     ]
+   }
+
+   A broker that discovers upstream support SHOULD either:
+
+   *  create a new oauth_request_delegation_chain authorization detail
+      object, if no chain is already present; or
+
+   *  validate and extend the existing chain, if a chain is already
+      present.
+
+   A broker MAY still use this profile with an upstream authorization
+   server when support is established by other means, such as bilateral
+   configuration, federation metadata, contractual onboarding, or local
+   policy.
+
+   If a broker is unable to determine whether the upstream authorization
+   server supports this profile, the broker SHOULD apply local policy.
+   Local policy can include forwarding the request without this
+   authorization detail, aborting the transaction, or using an
+   alternative delegation mechanism.
+
+8.1.  Upstream Support Failure
+
+   If a broker receives an authorization request containing an
+   oauth_request_delegation_chain authorization detail object and
+   determines that the next upstream authorization server does not
+   support this profile, the broker MUST NOT silently discard the
+   delegation chain.
+
+   The broker MUST either reject the transaction, use another trusted
+   mechanism to preserve the delegation context, or forward the request
+   without the chain only when doing so is permitted by local policy and
+   by the signed chain requirement.
+
+   A delegation node MAY contain the following member:
+
+   omit_chain  OPTIONAL.  String indicating whether a broker is allowed
+      to forward the authorization request without the delegation chain
+      if the next upstream authorization server does not support this
+      profile.  Defined values are forbidden and allowed.  If omitted,
+      the default value is forbidden.
+
+   If any validated node contains:
+
+   "omit_chain": "forbidden"
+
+   or omits omit_chain, then a broker that cannot forward the delegation
+   chain to the next upstream authorization server, and cannot preserve
+   equivalent delegation context by another trusted mechanism, MUST
+   reject the transaction.
+
+   If every validated node contains:
+
+   "omit_chain": "allowed"
+
+   then the broker MAY forward the authorization request without the
+   delegation chain, subject to local policy.
+
+   A broker MUST NOT silently discard a delegation chain.  Forwarding
+   without the chain is an explicit degradation of delegation evidence
+   and is permitted only when allowed by the validated chain and by
+   local policy.
+
+9.  Validating a Delegation Chain
 
    An authorization server validating a delegation chain performs the
    following checks.
@@ -1065,7 +1065,7 @@ Table of Contents
    Therefore, a valid signature on node i commits to node i - 1 when
    p_hash is valid.
 
-15.1.  Step 1 - Schema Validation
+9.1.  Step 1 - Schema Validation
 
    The authorization server validates that the authorization detail
    object contains:
@@ -1087,7 +1087,7 @@ Table of Contents
    A receiver MAY reject nodes containing unsupported values or
    unsupported extension members.
 
-15.2.  Step 2 - Client Namespace Validation
+9.2.  Step 2 - Client Namespace Validation
 
    The authorization server verifies that each node contains a supported
    client_ns value.
@@ -1100,7 +1100,7 @@ Table of Contents
    If the authorization server does not support the client_ns value, it
    MUST reject the authorization detail object.
 
-15.3.  Step 3 - Terminal Node Checks
+9.3.  Step 3 - Terminal Node Checks
 
    Let last be the index of the final node in the chain.
 
@@ -1153,7 +1153,7 @@ Table of Contents
 
    A protected API endpoint MUST NOT appear in aud.
 
-15.4.  Step 4 - Signature Validation
+9.4.  Step 4 - Signature Validation
 
    For each node, the authorization server:
 
@@ -1194,11 +1194,11 @@ Table of Contents
    the signed members of each node as authenticated statements by that
    node's iss.
 
-   In particular, the terminal preflight checks in Section 15.3 are then
+   In particular, the terminal preflight checks in Section 9.3 are then
    authenticated because the final node's signature covers the same iss,
    aud, client_ns, client_id, p_hash, and other signed members.
 
-15.5.  Step 5 - Backward Chain Validation
+9.5.  Step 5 - Backward Chain Validation
 
    The authorization server validates the chain from the final node
    toward the first node.  For every i from last down to 1, the
@@ -1242,7 +1242,7 @@ Table of Contents
    node[0].aud == node[1].iss
    node[1].aud == node[2].iss
 
-15.6.  Step 6 - Resource Consistency Validation
+9.6.  Step 6 - Resource Consistency Validation
 
    If multiple nodes contain resource, the authorization server SHOULD
    verify that the resource value is consistent across the chain, unless
@@ -1252,7 +1252,7 @@ Table of Contents
    server SHOULD verify that each transformation is allowed for the
    issuer performing the transformation.
 
-15.7.  Step 7 - Delegation Relationship Validation
+9.7.  Step 7 - Delegation Relationship Validation
 
    The authorization server SHOULD verify that adjacent nodes are
    semantically consistent.
@@ -1279,7 +1279,7 @@ Table of Contents
    relationship is inconsistent with registration metadata, federation
    metadata, or local policy.
 
-15.8.  Step 8 - Policy Validation
+9.8.  Step 8 - Policy Validation
 
    After cryptographic validation, the authorization server applies
    local policy.
@@ -1333,7 +1333,7 @@ Table of Contents
    client, namespace, resource, subject, first-node issuer, or path is
    not allowed.
 
-16.  Consent Binding
+10.  Consent Binding
 
    In brokered OAuth, an authorization server SHOULD NOT bind consent
    only to:
@@ -1364,7 +1364,7 @@ Table of Contents
    This prevents consent granted to one downstream client from being
    silently reused by another downstream client through the same broker.
 
-17.  Authorization Server Considerations
+11.  Authorization Server Considerations
 
    An authorization server that supports this profile SHOULD advertise
    support for the oauth_request_delegation_chain authorization details
@@ -1448,9 +1448,9 @@ Table of Contents
    exposing only necessary authorization results to resource servers via
    token introspection [RFC7662].
 
-18.  Security Considerations
+12.  Security Considerations
 
-18.1.  Chain Integrity
+12.1.  Chain Integrity
 
    The hash chain, per-node detached JWS signatures, sequence numbers,
    and audience continuity checks are intended to detect modification,
@@ -1458,13 +1458,13 @@ Table of Contents
    the visible delegation chain.
 
    A receiver MUST reject a chain if any required validation check
-   described in Section 15 fails.
+   described in Section 9 fails.
 
    A valid signature proves only that the identified issuer signed the
    node.  It does not imply that the issuer is trusted for the requested
    delegation.
 
-18.2.  Truncation and Re-origination
+12.2.  Truncation and Re-origination
 
    Truncation has three relevant cases.
 
@@ -1486,7 +1486,7 @@ Table of Contents
    first visible issuer for the requested client, resource, and
    deployment context.
 
-18.3.  Replay
+12.3.  Replay
 
    This profile does not define expiration, nonce, or replay-cache
    claims in the base structure.
@@ -1495,7 +1495,7 @@ Table of Contents
    deployment-specific extensions and validate them according to local
    policy.
 
-18.4.  Display Names
+12.4.  Display Names
 
    client_name is intended only for display.
 
@@ -1505,7 +1505,7 @@ Table of Contents
    The stable security identifier depends on client_ns, client_id, and
    the applicable issuer or namespace context.
 
-18.5.  Trust in Attesters
+12.5.  Trust in Attesters
 
    A valid chain establishes integrity and provenance of the visible
    attestations.  It does not establish that the attesters, clients,
@@ -1514,7 +1514,7 @@ Table of Contents
    Authorization servers MUST apply local trust policy before accepting
    a delegation chain.
 
-18.6.  Trust in Broker Client Metadata
+12.6.  Trust in Broker Client Metadata
 
    The client_roles client metadata member can indicate that a client is
    expected to act as an OAuth broker.
@@ -1530,7 +1530,7 @@ Table of Contents
    client registration, a trusted software statement, federation
    metadata, or local trust policy.
 
-18.7.  Metadata Resolution
+12.7.  Metadata Resolution
 
    This profile assumes that attesters publish verification keys through
    authorization server metadata and jwks_uri.
@@ -1539,7 +1539,7 @@ Table of Contents
    the key identified by kid, the receiver MUST reject the affected
    node.
 
-18.8.  Immediate Client Authentication
+12.8.  Immediate Client Authentication
 
    The delegation chain does not replace OAuth client authentication.
 
@@ -1549,7 +1549,7 @@ Table of Contents
    The authorization server MUST verify that the authenticated immediate
    client is consistent with the final delegation node.
 
-18.9.  Privacy
+12.9.  Privacy
 
    A delegation chain can reveal intermediaries, downstream clients,
    resources, and possibly subjects.
@@ -1557,9 +1557,9 @@ Table of Contents
    Deployments SHOULD minimize included data and avoid including
    unnecessary personally identifiable information.
 
-19.  IANA Considerations
+13.  IANA Considerations
 
-19.1.  OAuth Dynamic Client Registration Metadata Registration
+13.1.  OAuth Dynamic Client Registration Metadata Registration
 
    This document requests registration of the following value in the
    IANA "OAuth Dynamic Client Registration Metadata" registry
@@ -1578,7 +1578,7 @@ Table of Contents
 
    Specification Document:  This document.
 
-19.2.  OAuth Authorization Details Type
+13.2.  OAuth Authorization Details Type
 
    This document defines the oauth_request_delegation_chain
    authorization details type.
@@ -1587,9 +1587,9 @@ Table of Contents
    registration of the oauth_request_delegation_chain authorization
    details type in the applicable IANA registry.
 
-20.  References
+14.  References
 
-20.1.  Normative References
+14.1.  Normative References
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -1644,7 +1644,7 @@ Table of Contents
               DOI 10.17487/RFC9396, May 2023,
               <https://www.rfc-editor.org/rfc/rfc9396>.
 
-20.2.  Informative References
+14.2.  Informative References
 
    [I-D.ietf-oauth-client-id-metadata-document]
               "OAuth Client ID Metadata Document", n.d.,
